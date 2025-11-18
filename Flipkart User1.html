@@ -1,0 +1,2621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aristo Store - Digital Products Marketplace</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Poppins:wght@300;400;500;600;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js"></script>
+    
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #2874f0;
+            --secondary-color: #ff9f00;
+            --background-color: #f1f3f6;
+            --card-background: #ffffff;
+            --text-primary: #212121;
+            --text-secondary: #878787;
+            --text-light: #ffffff;
+            --border-color: #e0e0e0;
+            --success: #26a541;
+            --danger: #ff6161;
+            --shadow: 0 1px 2px 0 rgba(0,0,0,.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .container {
+            padding: 0 8px;
+        }
+
+        /* Header */
+        header {
+            background: var(--primary-color);
+            padding: 8px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 4px 0 rgba(0,0,0,.08);
+        }
+
+        .header-content {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 8px;
+        }
+
+        .logo {
+            font-family: 'Roboto', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo i {
+            color: var(--secondary-color);
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+        
+        .icon-btn {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 1.2rem;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .badge {
+            position: absolute;
+            top: -5px;
+            right: -8px;
+            background: var(--danger);
+            color: white;
+            font-size: 0.7rem;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .search-bar {
+            width: 100%;
+            position: relative;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 10px 40px 10px 15px;
+            border-radius: 4px;
+            border: none;
+            background: var(--card-background);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            box-shadow: var(--shadow);
+        }
+        
+        .search-bar input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .search-bar button {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            width: 40px;
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        /* Main Content */
+        main {
+            padding-bottom: 70px; /* Space for bottom nav */
+            min-height: 100vh;
+        }
+
+        .section {
+            padding: 12px 0;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            padding: 0 8px;
+        }
+
+        /* Slider */
+        .slider-container {
+            width: 100%;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .slider-wrapper {
+            display: flex;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .slider-item {
+            flex-shrink: 0;
+            width: 100%;
+            padding: 0 4px;
+        }
+        
+        .slider-item img {
+            width: 100%;
+            border-radius: 4px;
+            display: block;
+        }
+
+        /* Categories */
+        .categories {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 8px;
+            background-color: var(--card-background);
+            margin-bottom: 12px;
+            scrollbar-width: none; /* Firefox */
+        }
+
+        .categories::-webkit-scrollbar {
+            display: none; /* Safari and Chrome */
+        }
+
+        .category-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            min-width: 70px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .category-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--background-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .category-icon i {
+            font-size: 1.4rem;
+            color: var(--primary-color);
+        }
+
+        .category-card span {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        /* Product Grid */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .product-card {
+            background: var(--card-background);
+            border-radius: 4px;
+            overflow: hidden;
+            transition: box-shadow 0.2s ease-in-out;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-card:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,.1);
+        }
+
+        .product-image-container {
+            height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+        }
+        
+        .product-image {
+            max-height: 100%;
+            max-width: 100%;
+            object-fit: contain;
+        }
+        
+        .product-info {
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .product-title {
+            font-size: 0.85rem;
+            font-weight: 500;
+            line-height: 1.4;
+            height: 2.4em; /* Limit to 2 lines */
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 4px;
+            color: var(--text-secondary);
+        }
+
+        .product-price-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: auto;
+        }
+        
+        .product-price {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .product-original-price {
+            font-size: 0.8rem;
+            text-decoration: line-through;
+            color: var(--text-secondary);
+        }
+        
+        .product-discount {
+            font-size: 0.8rem;
+            color: var(--success);
+            font-weight: 600;
+        }
+        
+        .product-rating {
+            display: none; /* Simplified card view */
+        }
+        
+        .product-actions {
+            margin-top: 8px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 10px;
+            border-radius: 4px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: var(--secondary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #fb8500;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+        }
+        
+        .btn-wishlist {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: var(--text-light);
+        }
+
+        /* Product Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: block;
+        }
+
+        .modal-content {
+            background: var(--background-color);
+            width: 100%;
+            min-height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            animation: slideInUp 0.3s ease;
+        }
+
+        .modal-header {
+            background: var(--card-background);
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+        
+        .modal-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .product-gallery {
+            position: relative;
+            background: var(--card-background);
+            padding: 16px 0;
+        }
+        
+        .gallery-image-container {
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .gallery-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
+        .product-details {
+            background: var(--card-background);
+            margin-top: 8px;
+            padding: 16px;
+        }
+        
+        .product-title-large {
+            font-size: 1.2rem;
+            font-weight: 500;
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+        
+        .product-price-large {
+             font-size: 1.8rem;
+             font-weight: 600;
+             margin-bottom: 8px;
+        }
+
+        .product-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-top: 12px;
+        }
+        
+        .product-actions-large {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 8px;
+            background: var(--card-background);
+            border-top: 1px solid var(--border-color);
+            z-index: 1001;
+        }
+        
+        .btn-large {
+            padding: 12px;
+            font-size: 1rem;
+        }
+        
+        .btn-add-to-cart {
+            background: var(--card-background);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+        
+        .btn-buy-now {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--card-background);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-around;
+            padding: 6px 0;
+            z-index: 100;
+            box-shadow: 0 -1px 2px 0 rgba(0,0,0,.08);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+
+        .nav-item.active {
+            color: var(--primary-color);
+        }
+
+        .nav-item i {
+            font-size: 1.4rem;
+        }
+
+        /* Page Styles */
+        .page {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .page-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            padding: 16px;
+            background: var(--card-background);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .content-card {
+            background: var(--card-background);
+            margin: 8px;
+            border-radius: 4px;
+            padding: 16px;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px 10px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background: var(--background-color);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        /* Order Card */
+        .order-card {
+            background: var(--card-background);
+            margin: 8px;
+            border-radius: 4px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .order-product {
+            display: flex;
+            gap: 12px;
+        }
+
+        .order-product-image {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+        }
+        
+        .order-product-info {
+            flex: 1;
+        }
+        
+        .order-product-title {
+            font-weight: 500;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+        
+        .order-status {
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .status-completed { color: var(--success); }
+        .status-pending { color: var(--secondary-color); }
+        .status-failed { color: var(--danger); }
+        
+        .order-status::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: currentColor;
+        }
+        
+        .order-date {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Auth Forms */
+        .auth-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Center vertically */
+            align-items: center; /* Center horizontally */
+            min-height: 100vh;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* Premium gradient */
+        }
+        
+        .auth-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .auth-logo {
+            font-size: 3rem; /* Larger logo */
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: 8px;
+        }
+
+        .auth-card {
+            background: rgba(255, 255, 255, 0.95); /* Semi-transparent white */
+            backdrop-filter: blur(10px); /* Frosted glass effect */
+            border-radius: 12px; /* Softer corners */
+            padding: 24px;
+            width: 100%;
+            max-width: 400px;
+            margin: 0;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        
+        .auth-form input {
+            background: #f0f2f5; /* Light grey background for inputs */
+            border: 1px solid #dcdfe6;
+            border-radius: 8px;
+            padding: 14px; /* More padding */
+            font-size: 1rem;
+            color: #303133;
+        }
+        
+        .auth-form input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(40, 116, 240, 0.2);
+        }
+
+        .auth-footer {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.8rem;
+            margin-top: 24px;
+        }
+
+        .auth-tab {
+            font-size: 1.1rem;
+            font-weight: 600;
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent; /* Thicker border */
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+
+        .auth-tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+        
+        .auth-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+
+        .auth-card .btn {
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+
+        .auth-card .btn-primary {
+            background: var(--primary-color);
+            box-shadow: 0 4px 12px rgba(40, 116, 240, 0.3);
+        }
+        .auth-card .btn-primary:hover {
+             background: #1a5cbf; /* Darker shade */
+             transform: translateY(-2px);
+             box-shadow: 0 6px 16px rgba(40, 116, 240, 0.4);
+        }
+
+        .auth-card .btn-outline {
+            background: transparent;
+            color: #606770;
+            border: 1px solid #dcdfe6;
+            margin-top: 12px;
+        }
+
+        .auth-card .btn-outline:hover {
+            background: #f0f2f5;
+            border-color: #c0c4cc;
+        }
+        
+        .auth-form { display: none; }
+        .auth-form.active { display: block; }
+        
+        /* Skeleton Loaders */
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        
+        .skeleton-card {
+            background: var(--card-background);
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        .skeleton-image {
+            height: 140px;
+        }
+
+        .skeleton-content {
+            padding: 8px;
+        }
+        
+        .skeleton-text {
+            height: 1em;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toast {
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            border-radius: 20px;
+            padding: 10px 16px;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            animation: fadeIn 0.3s ease;
+        }
+
+        /* Payment Modal */
+        .payment-modal-body {
+            padding: 16px;
+        }
+        .payment-summary, .payment-instructions, .payment-form {
+            margin-bottom: 20px;
+        }
+        .payment-summary h3, .payment-instructions h3, .payment-form h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        .price-details {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+        .price-details.total {
+            font-weight: 600;
+            font-size: 1rem;
+            padding-top: 8px;
+            border-top: 1px dashed var(--border-color);
+        }
+        .payment-instructions p, .payment-instructions ul {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        .payment-instructions ul {
+            padding-left: 20px;
+            margin-top: 8px;
+        }
+        .payment-actions {
+            padding: 16px;
+            position: sticky;
+            bottom: 0;
+            background: var(--card-background);
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideInUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-content">
+            <div class="container">
+                <div class="header-top">
+                    <div class="logo">
+                        <i class="fas fa-rocket"></i>
+                        <span>Aristo</span>
+                    </div>
+                    <div class="header-actions">
+                        <button class="icon-btn" id="notificationBtn"><i class="fas fa-bell"></i></button>
+                        <button class="icon-btn" id="cartBtn">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span class="badge" id="cartCount">0</span>
+                        </button>
+                        <button class="icon-btn" id="userBtn"><i class="fas fa-user-circle"></i></button>
+                    </div>
+                </div>
+            </div>
+            <div class="container">
+                <div class="search-bar">
+                    <input type="text" id="searchInput" placeholder="Search for Products, Brands and More">
+                    <button id="searchBtn"><i class="fas fa-search"></i></button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Home Page -->
+        <div id="homePage" class="page active">
+            <!-- Slider -->
+            <div class="slider-container" id="sliderContainer">
+                <div class="slider-wrapper" id="sliderWrapper">
+                    <!-- Slider items will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Categories -->
+            <div class="categories" id="categoriesContainer">
+                <!-- Categories will be loaded here -->
+            </div>
+
+            <!-- All Products -->
+            <div class="section">
+                <div class="container">
+                    <h2 class="section-title">Deals of the Day</h2>
+                    <div class="product-grid" id="allProducts">
+                        <!-- Products will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders Page -->
+        <div id="ordersPage" class="page">
+            <div class="page-title">My Orders</div>
+            <div id="ordersContainer">
+                <!-- Orders will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Wishlist Page -->
+        <div id="wishlistPage" class="page">
+            <div class="page-title">My Wishlist</div>
+            <div class="container" id="wishlistContainer">
+                <!-- Wishlist items will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Downloads Page -->
+        <div id="downloadsPage" class="page">
+             <div class="page-title">My Downloads</div>
+            <div id="downloadsContainer">
+                <!-- Downloads will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Profile Page -->
+        <div id="profilePage" class="page">
+            <div class="page-title">My Account</div>
+            <div class="content-card">
+                <div class="form-group">
+                    <label for="profileName">Full Name</label>
+                    <input type="text" id="profileName" placeholder="Enter your name">
+                </div>
+                <div class="form-group">
+                    <label for="profileEmail">Email Address</label>
+                    <input type="email" id="profileEmail" placeholder="Enter your email" disabled>
+                </div>
+                <div class="form-group">
+                    <label for="profilePhone">Phone Number</label>
+                    <input type="tel" id="profilePhone" placeholder="Enter your phone number">
+                </div>
+                <button class="btn btn-primary" id="saveProfileBtn">Save Changes</button>
+            </div>
+            <div class="content-card">
+                 <button class="btn btn-outline" id="logoutBtn">Logout</button>
+            </div>
+            <div class="content-card">
+                <button class
+="btn btn-outline" id="changePasswordBtn" style="margin-bottom: 8px; width: 100%;">Change Password</button>
+                <button class="btn btn-danger" id="deleteAccountBtn" style="width: 100%;">Delete Account</button>
+            </div>
+        </div>
+
+        <!-- Settings Page (Simplified and integrated into Profile) -->
+        <div id="settingsPage" class="page">
+            <div class="page-title">Settings</div>
+            <!-- Settings can be added here if needed, for now it's merged with profile -->
+        </div>
+    </main>
+
+    <!-- Product Modal -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="modal-close" id="closeModal"><i class="fas fa-arrow-left"></i></button>
+                <h2 class="modal-title" id="modalProductTitleShort">Product Details</h2>
+            </div>
+            <div class="product-gallery">
+                <div class="gallery-image-container">
+                     <img src="" alt="Product" class="gallery-image" id="galleryImage">
+                </div>
+            </div>
+            <div class="product-details">
+                <h1 class="product-title-large" id="modalProductTitle">Product Title</h1>
+                <div class="product-price-large" id="modalProductPrice">₹0</div>
+                <div class="product-description" id="modalProductDescription">
+                    Product description will appear here...
+                </div>
+            </div>
+             <div class="product-actions-large">
+                <button class="btn btn-large btn-add-to-cart" id="addToWishlistBtn">
+                    Add to Wishlist
+                </button>
+                <button class="btn btn-large btn-buy-now" id="buyNowBtn">
+                    Buy Now
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+             <div class="modal-header">
+                <button class="modal-close" id="closePaymentModal"><i class="fas fa-arrow-left"></i></button>
+                <h2 class="modal-title">Secure Payment</h2>
+            </div>
+            <div class="payment-modal-body">
+                <div class="payment-summary">
+                    <h3>Order Summary</h3>
+                    <div class="price-details">
+                        <span>Total Price:</span>
+                        <span id="paymentTotal">₹0</span>
+                    </div>
+                    <div class="price-details">
+                        <span>Advance Payable (1/3):</span>
+                        <span id="paymentAdvance">₹0</span>
+                    </div>
+                     <div class="price-details total">
+                        <span>Remaining (Pay on Delivery):</span>
+                        <span id="paymentRemaining">₹0</span>
+                    </div>
+                </div>
+                <div class="payment-instructions">
+                    <h3>Payment Instructions (Manual)</h3>
+                    <p>Please pay the advance amount to one of the following numbers and provide the transaction details below.</p>
+                    <ul>
+                        <li><strong>bKash:</strong> 01234567890</li>
+                        <li><strong>Nagad:</strong> 01234567890</li>
+                        <li><strong>Rocket:</strong> 01234567890</li>
+                    </ul>
+                </div>
+                <div class="payment-form">
+                    <h3>Confirm Order</h3>
+                     <form id="paymentForm">
+                        <div class="form-group">
+                            <label for="customerName">Full Name</label>
+                            <input type="text" id="customerName" placeholder="Your Full Name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="customerAddress">Delivery Address</label>
+                            <input type="text" id="customerAddress" placeholder="Your Full Address" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="paymentNumber">Your Payment Number</label>
+                            <input type="text" id="paymentNumber" placeholder="e.g., 01xxxxxxxxx" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="transactionId">Transaction ID (TrxID)</label>
+                            <input type="text" id="transactionId" placeholder="Enter the TrxID from your payment" required>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="payment-actions">
+                <button class="btn btn-primary" id="confirmOrderBtn">Confirm Order</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Auth Container -->
+    <div id="authContainer" class="auth-container">
+        <div class="auth-header">
+             <div class="auth-logo">
+                <i class="fas fa-rocket"></i>
+            </div>
+        </div>
+        <div class="auth-card">
+            <div class="auth-tabs">
+                <div class="auth-tab active" id="loginTab">Login</div>
+                <div class="auth-tab" id="signupTab">Sign Up</div>
+            </div>
+            
+            <form class="auth-form active" id="loginForm">
+                <div class="form-group">
+                    <input type="email" id="loginEmail" placeholder="Email Address" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="loginPassword" placeholder="Password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Login</button>
+            </form>
+            
+            <form class="auth-form" id="signupForm">
+                <div class="form-group">
+                    <input type="text" id="signupName" placeholder="Full Name" required>
+                </div>
+                <div class="form-group">
+                    <input type="email" id="signupEmail" placeholder="Email Address" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="signupPassword" placeholder="Create Password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Sign Up</button>
+            </form>
+            <button class="btn btn-outline" id="guestLoginBtn" style="width: 100%; margin-top: 12px;">Continue as Guest</button>
+        </div>
+        <div class="auth-footer">
+            <p>By continuing, you agree to our Terms of Service and Privacy Policy.</p>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <div class="nav-item active" data-page="homePage">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </div>
+        <div class="nav-item" data-page="ordersPage">
+            <i class="fas fa-clipboard-list"></i>
+            <span>Orders</span>
+        </div>
+        <div class="nav-item" data-page="wishlistPage">
+            <i class="fas fa-heart"></i>
+            <span>Wishlist</span>
+        </div>
+        <div class="nav-item" data-page="downloadsPage">
+            <i class="fas fa-download"></i>
+            <span>Downloads</span>
+        </div>
+        <div class="nav-item" data-page="profilePage">
+            <i class="fas fa-user"></i>
+            <span>Account</span>
+        </div>
+    </nav>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Legal Pages Modal (Simplified, can be a dedicated page or similar modal) -->
+    <div id="legalModal" class="modal">
+        <div class="modal-content">
+             <div class="modal-header">
+                <button class="modal-close" id="closeLegalModal"><i class="fas fa-arrow-left"></i></button>
+                <h2 class="modal-title" id="legalModalTitle">Legal</h2>
+            </div>
+            <div class="modal-body" id="legalModalContent" style="padding: 16px; line-height: 1.6;">
+                <!-- Legal content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+  apiKey: "AIzaSyDMipslemqosUvtW6ppH7PBJ2Q1qMFEoDw",
+  authDomain: "flipkart-79ebe.firebaseapp.com",
+  databaseURL: "https://flipkart-79ebe-default-rtdb.firebaseio.com",
+  projectId: "flipkart-79ebe",
+  storageBucket: "flipkart-79ebe.firebasestorage.app",
+  messagingSenderId: "464736223712",
+  appId: "1:464736223712:web:406b693004c57f7b2cab85",
+  measurementId: "G-DY58SPL01K"
+};
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+
+        // App State
+        let currentUser = null;
+        let products = [];
+        let categories = [];
+        let cart = [];
+        let wishlist = [];
+        let orders = [];
+        let downloads = [];
+        let currentProduct = null;
+        let currentGalleryIndex = 0;
+
+        // DOM Elements
+        const authContainer = document.getElementById('authContainer');
+        const mainContent = document.querySelector('main');
+        const pages = document.querySelectorAll('.page');
+        const navItems = document.querySelectorAll('.nav-item');
+        const productModal = document.getElementById('productModal');
+        const paymentModal = document.getElementById('paymentModal');
+        const toastContainer = document.getElementById('toastContainer');
+        const legalModal = document.getElementById('legalModal');
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check for existing user session
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    currentUser = user;
+                    loadUserData();
+                    showMainContent();
+                } else {
+                    showAuthContainer();
+                }
+            });
+
+            // Setup event listeners
+            setupEventListeners();
+            
+            // Load initial data
+            loadSlider();
+            loadCategories();
+            loadProducts();
+        });
+
+        // Setup Event Listeners
+        function setupEventListeners() {
+            // Auth tabs
+            document.getElementById('loginTab').addEventListener('click', () => switchAuthTab('login'));
+            document.getElementById('signupTab').addEventListener('click', () => switchAuthTab('signup'));
+            
+            // Auth forms
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+            document.getElementById('signupForm').addEventListener('submit', handleSignup);
+            document.getElementById('guestLoginBtn').addEventListener('click', handleGuestLogin);
+            
+            // Navigation
+            navItems.forEach(item => {
+                item.addEventListener('click', () => navigateToPage(item.dataset.page));
+            });
+            
+            // Modals
+            document.getElementById('closeModal').addEventListener('click', closeModal);
+            document.getElementById('closePaymentModal').addEventListener('click', closePaymentModal);
+            document.getElementById('closeLegalModal').addEventListener('click', () => legalModal.classList.remove('active'));
+            
+            // Search
+            document.getElementById('searchBtn').addEventListener('click', handleSearch);
+            document.getElementById('searchInput').addEventListener('keyup', debounce(handleSearch, 300));
+            
+            // Header Actions
+            document.getElementById('cartBtn').addEventListener('click', () => showToast('Cart feature is coming soon!', 'info'));
+            document.getElementById('notificationBtn').addEventListener('click', () => showToast('No new notifications', 'info'));
+            document.getElementById('userBtn').addEventListener('click', () => navigateToPage('profilePage'));
+            
+            // Profile Page
+            document.getElementById('saveProfileBtn').addEventListener('click', handleProfileUpdate);
+            document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+            document.getElementById('changePasswordBtn').addEventListener('click', handleChangePassword);
+            document.getElementById('deleteAccountBtn').addEventListener('click', handleDeleteAccount);
+            
+            // Product Modal Actions
+            document.getElementById('buyNowBtn').addEventListener('click', () => {
+                if (currentProduct) handleProductAction(currentProduct);
+            });
+            document.getElementById('addToWishlistBtn').addEventListener('click', () => {
+                if (currentProduct) toggleWishlist(currentProduct.id, document.getElementById('addToWishlistBtn'));
+            });
+
+            // Payment Modal Action
+            document.getElementById('confirmOrderBtn').addEventListener('click', handleConfirmOrder);
+        }
+
+        // Auth Functions
+        function switchAuthTab(tab) {
+            const loginTab = document.getElementById('loginTab');
+            const signupTab = document.getElementById('signupTab');
+            const loginForm = document.getElementById('loginForm');
+            const signupForm = document.getElementById('signupForm');
+            const authTitle = document.querySelector('.auth-title');
+            const authSubtitle = document.querySelector('.auth-subtitle');
+            
+            if (tab === 'login') {
+                loginTab.classList.add('active');
+                signupTab.classList.remove('active');
+                loginForm.classList.add('active');
+                signupForm.classList.remove('active');
+                authTitle.textContent = 'Welcome Back';
+                authSubtitle.textContent = 'Sign in to continue to your account';
+            } else {
+                loginTab.classList.remove('active');
+                signupTab.classList.add('active');
+                loginForm.classList.remove('active');
+                signupForm.classList.add('active');
+                authTitle.textContent = 'Create Account';
+                authSubtitle.textContent = 'Join us to start shopping';
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            auth.signInWithEmailAndPassword(email, password)
+                .then(userCredential => {
+                    showToast('Login successful!', 'success');
+                })
+                .catch(error => {
+                    showToast(error.message, 'error');
+                });
+        }
+
+        function handleSignup(e) {
+            e.preventDefault();
+            const name = document.getElementById('signupName').value;
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            
+            auth.createUserWithEmailAndPassword(email, password)
+                .then(userCredential => {
+                    // Update user profile
+                    return userCredential.user.updateProfile({
+                        displayName: name
+                    });
+                })
+                .then(() => {
+                    // Save user data to Firestore
+                    return db.collection('users').doc(auth.currentUser.uid).set({
+                        name: name,
+                        email: email,
+                        phone: '',
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                })
+                .then(() => {
+                    showToast('Account created successfully!', 'success');
+                })
+                .catch(error => {
+                    showToast(error.message, 'error');
+                });
+        }
+
+        function handleGuestLogin() {
+            // For demo purposes, we'll create a guest user
+            auth.signInAnonymously()
+                .then(() => {
+                    showToast('Logged in as guest', 'success');
+                })
+                .catch(error => {
+                    showToast(error.message, 'error');
+                });
+        }
+
+        function handleLogout() {
+            auth.signOut()
+                .then(() => {
+                    showToast('Logged out successfully', 'success');
+                })
+                .catch(error => {
+                    showToast(error.message, 'error');
+                });
+        }
+
+        // UI Functions
+        function showAuthContainer() {
+            authContainer.style.display = 'flex';
+            mainContent.style.display = 'none';
+            document.querySelector('header').style.display = 'none';
+            document.querySelector('.bottom-nav').style.display = 'none';
+        }
+
+        function showMainContent() {
+            authContainer.style.display = 'none';
+            mainContent.style.display = 'block';
+            document.querySelector('header').style.display = 'block';
+            document.querySelector('.bottom-nav').style.display = 'flex';
+        }
+
+        function navigateToPage(pageId) {
+            // Update active nav item
+            navItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('data-page') === pageId) {
+                    item.classList.add('active');
+                }
+            });
+            
+            // Show selected page
+            pages.forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+            
+            // Load page-specific data
+            if (pageId === 'ordersPage') {
+                loadOrders();
+            } else if (pageId === 'wishlistPage') {
+                loadWishlist();
+            } else if (pageId === 'downloadsPage') {
+                loadDownloads();
+            } else if (pageId === 'profilePage') {
+                loadProfile();
+            } else if (pageId === 'settingsPage') {
+                loadSettings();
+            }
+        }
+
+        // Data Loading Functions
+        function loadSlider() {
+            // In a real app, this would fetch from Firestore 'sliders' collection
+            // For demo, we'll use static data
+            const sliders = [
+                { imageUrl: 'https://rukminim1.flixcart.com/fk-p-flap/1600/270/image/b8e07ff34feb7052.jpg?q=20', linkUrl: '#' },
+                { imageUrl: 'https://rukminim1.flixcart.com/fk-p-flap/1600/270/image/f2416c3c8b4a15a0.jpg?q=20', linkUrl: '#' },
+                { imageUrl: 'https://rukminim1.flixcart.com/fk-p-flap/1600/270/image/0a153155077a572a.jpg?q=20', linkUrl: '#' }
+            ];
+            renderSlider(sliders);
+        }
+
+        function renderSlider(sliders) {
+            const sliderWrapper = document.getElementById('sliderWrapper');
+            sliderWrapper.innerHTML = '';
+            sliders.forEach(slide => {
+                sliderWrapper.innerHTML += `
+                    <div class="slider-item">
+                        <a href="${slide.linkUrl}">
+                            <img src="${slide.imageUrl}" alt="Banner">
+                        </a>
+                    </div>
+                `;
+            });
+            setupSlider();
+        }
+
+        function setupSlider() {
+            const sliderContainer = document.getElementById('sliderContainer');
+            const sliderWrapper = document.getElementById('sliderWrapper');
+            const slides = sliderWrapper.children;
+            if (slides.length <= 1) return;
+
+            let currentIndex = 0;
+            let startX = 0;
+            let currentTranslate = 0;
+            let prevTranslate = 0;
+            let isDragging = false;
+            let animationID;
+            let intervalID;
+
+            function updateSliderPosition() {
+                sliderWrapper.style.transform = `translateX(${currentTranslate}px)`;
+            }
+
+            function setPositionByIndex() {
+                currentTranslate = currentIndex * -sliderContainer.offsetWidth;
+                prevTranslate = currentTranslate;
+                updateSliderPosition();
+            }
+            
+            function autoSlide() {
+                currentIndex = (currentIndex + 1) % slides.length;
+                setPositionByIndex();
+            }
+
+            intervalID = setInterval(autoSlide, 3000);
+
+            function touchStart(index) {
+                return function(event) {
+                    clearInterval(intervalID);
+                    currentIndex = index;
+                    startX = event.type.includes('mouse') ? event.pageX : event.touches[0].clientX;
+                    isDragging = true;
+                    animationID = requestAnimationFrame(animation);
+                    sliderWrapper.style.transition = 'none';
+                }
+            }
+
+            function touchMove(event) {
+                if (isDragging) {
+                    const currentPosition = event.type.includes('mouse') ? event.pageX : event.touches[0].clientX;
+                    currentTranslate = prevTranslate + currentPosition - startX;
+                }
+            }
+
+            function touchEnd() {
+                clearInterval(intervalID);
+                isDragging = false;
+                cancelAnimationFrame(animationID);
+                
+                const movedBy = currentTranslate - prevTranslate;
+
+                if (movedBy < -100 && currentIndex < slides.length - 1) currentIndex++;
+                if (movedBy > 100 && currentIndex > 0) currentIndex--;
+
+                setPositionByIndex();
+                sliderWrapper.style.transition = 'transform 0.3s ease-in-out';
+                intervalID = setInterval(autoSlide, 3000);
+            }
+
+            function animation() {
+                updateSliderPosition();
+                if (isDragging) requestAnimationFrame(animation);
+            }
+
+            Array.from(slides).forEach((slide, index) => {
+                const slideImage = slide.querySelector('img');
+                slideImage.addEventListener('dragstart', (e) => e.preventDefault());
+                
+                // Touch events
+                slide.addEventListener('touchstart', touchStart(index));
+                slide.addEventListener('touchend', touchEnd);
+                slide.addEventListener('touchmove', touchMove);
+
+                // Mouse events
+                slide.addEventListener('mousedown', touchStart(index));
+                slide.addEventListener('mouseup', touchEnd);
+                slide.addEventListener('mouseleave', touchEnd);
+                slide.addEventListener('mousemove', touchMove);
+            });
+            
+            window.addEventListener('resize', setPositionByIndex);
+        }
+
+
+        function loadCategories() {
+            // In a real app, this would fetch from Firestore
+            // For demo, we'll use static data
+            categories = [
+                { id: 'all', name: 'All', icon: 'fas fa-tags' },
+                { id: 'templates', name: 'Templates', icon: 'fas fa-file-alt' },
+                { id: 'graphics', name: 'Graphics', icon: 'fas fa-palette' },
+                { id: 'videos', name: 'Videos', icon: 'fas fa-video' },
+                { id: 'music', name: 'Music', icon: 'fas fa-music' },
+                { id: 'ebooks', name: 'E-books', icon: 'fas fa-book-open' },
+            ];
+            
+            renderCategories();
+        }
+
+        function renderCategories() {
+            const container = document.getElementById('categoriesContainer');
+            container.innerHTML = '';
+            
+            categories.forEach(category => {
+                const categoryCard = document.createElement('div');
+                categoryCard.className = 'category-card';
+                categoryCard.innerHTML = `
+                    <div class="category-icon"><i class="${category.icon}"></i></div>
+                    <span>${category.name}</span>
+                `;
+                
+                categoryCard.addEventListener('click', () => {
+                    filterProducts(category.id);
+                    showToast(`Showing ${category.name}`, 'info');
+                });
+                
+                container.appendChild(categoryCard);
+            });
+        }
+
+        function loadProducts() {
+            // Show skeleton loaders
+            showProductSkeletons();
+            
+            // In a real app, this would fetch from Firestore
+            // For demo, we'll use static data
+            setTimeout(() => {
+                products = [
+                    {
+                        id: '1',
+                        title: 'Premium Website Template',
+                        description: 'A modern, responsive website template built with HTML, CSS, and JavaScript. Perfect for businesses, portfolios, and blogs.',
+                        price: 2999,
+                        category: 'templates',
+                        images: [
+                            'https://picsum.photos/seed/template1/800/600.jpg',
+                            'https://picsum.photos/seed/template2/800/600.jpg',
+                            'https://picsum.photos/seed/template3/800/600.jpg'
+                        ],
+                        tags: ['HTML', 'CSS', 'JavaScript', 'Responsive'],
+                        rating: 4.5,
+                        reviewCount: 24,
+                        isFree: false,
+                        isFeatured: true,
+                        downloadUrl: 'https://example.com/download/template1',
+                        razorpayId: 'rzp_template1'
+                    },
+                    {
+                        id: '2',
+                        title: 'Social Media Graphics Pack',
+                        description: 'A collection of 100+ high-quality social media graphics for Instagram, Facebook, Twitter, and more.',
+                        price: 0,
+                        category: 'graphics',
+                        images: [
+                            'https://picsum.photos/seed/graphics1/800/600.jpg',
+                            'https://picsum.photos/seed/graphics2/800/600.jpg'
+                        ],
+                        tags: ['Social Media', 'Graphics', 'Marketing'],
+                        rating: 4.8,
+                        reviewCount: 56,
+                        isFree: true,
+                        isFeatured: true,
+                        downloadUrl: 'https://example.com/download/graphics1',
+                        razorpayId: ''
+                    },
+                    {
+                        id: '3',
+                        title: 'Video Editing Course',
+                        description: 'Learn professional video editing techniques with this comprehensive course covering all major editing software.',
+                        price: 4999,
+                        category: 'courses',
+                        images: [
+                            'https://picsum.photos/seed/course1/800/600.jpg',
+                            'https://picsum.photos/seed/course2/800/600.jpg'
+                        ],
+                        tags: ['Video', 'Editing', 'Course', 'Tutorial'],
+                        rating: 4.7,
+                        reviewCount: 89,
+                        isFree: false,
+                        isFeatured: false,
+                        downloadUrl: 'https://example.com/download/course1',
+                        razorpayId: 'rzp_course1'
+                    },
+                    {
+                        id: '4',
+                        title: 'Royalty-Free Music Collection',
+                        description: 'A collection of 50+ royalty-free music tracks perfect for videos, podcasts, and presentations.',
+                        price: 1999,
+                        category: 'music',
+                        images: [
+                            'https://picsum.photos/seed/music1/800/600.jpg'
+                        ],
+                        tags: ['Music', 'Royalty-Free', 'Audio'],
+                        rating: 4.3,
+                        reviewCount: 32,
+                        isFree: false,
+                        isFeatured: false,
+                        downloadUrl: 'https://example.com/download/music1',
+                        razorpayId: 'rzp_music1'
+                    },
+                    {
+                        id: '5',
+                        title: 'E-book: Digital Marketing Guide',
+                        description: 'A comprehensive guide to digital marketing strategies, SEO, social media marketing, and more.',
+                        price: 0,
+                        category: 'ebooks',
+                        images: [
+                            'https://picsum.photos/seed/ebook1/800/600.jpg'
+                        ],
+                        tags: ['E-book', 'Marketing', 'Digital', 'Guide'],
+                        rating: 4.6,
+                        reviewCount: 41,
+                        isFree: true,
+                        isFeatured: false,
+                        downloadUrl: 'https://example.com/download/ebook1',
+                        razorpayId: ''
+                    },
+                    {
+                        id: '6',
+                        title: 'Productivity Software Suite',
+                        description: 'A suite of productivity tools including task manager, note-taking app, and calendar.',
+                        price: 3999,
+                        category: 'software',
+                        images: [
+                            'https://picsum.photos/seed/software1/800/600.jpg',
+                            'https://picsum.photos/seed/software2/800/600.jpg'
+                        ],
+                        tags: ['Software', 'Productivity', 'Tools'],
+                        rating: 4.4,
+                        reviewCount: 18,
+                        isFree: false,
+                        isFeatured: true,
+                        downloadUrl: 'https://example.com/download/software1',
+                        razorpayId: 'rzp_software1'
+                    }
+                ];
+                
+                renderProducts();
+            }, 1500);
+        }
+
+        function showProductSkeletons() {
+            const featuredContainer = document.getElementById('featuredProducts');
+            const allContainer = document.getElementById('allProducts');
+            
+            // Create skeleton cards
+            const skeletonCard = `
+                <div class="skeleton-card">
+                    <div class="skeleton skeleton-image"></div>
+                    <div class="skeleton-content">
+                        <div class="skeleton skeleton-title"></div>
+                        <div class="skeleton skeleton-text"></div>
+                        <div class="skeleton skeleton-text" style="width: 60%;"></div>
+                    </div>
+                </div>
+            `;
+            
+            // Add 4 skeleton cards to each container
+            for (let i = 0; i < 4; i++) {
+                featuredContainer.innerHTML += skeletonCard;
+                allContainer.innerHTML += skeletonCard;
+            }
+        }
+
+        function renderProducts() {
+            const featuredContainer = document.getElementById('featuredProducts');
+            const allContainer = document.getElementById('allProducts');
+            
+            // Clear containers
+            featuredContainer.innerHTML = '';
+            allContainer.innerHTML = '';
+            
+            // Filter featured products
+            const featuredProducts = products.filter(product => product.isFeatured);
+            
+            // Render featured products
+            featuredProducts.forEach(product => {
+                featuredContainer.appendChild(createProductCard(product));
+            });
+            
+            // Render all products
+            products.forEach(product => {
+                allContainer.appendChild(createProductCard(product));
+            });
+        }
+
+        function createProductCard(product) {
+            const card = document.createElement('div');
+            card.className = 'product-card';
+            
+            // Create badges HTML
+            let badgesHTML = '';
+            if (product.isFree) {
+                badgesHTML += `<span class="badge-product badge-free">Free</span>`;
+            }
+            if (product.isFeatured) {
+                badgesHTML += `<span class="badge-product badge-featured">Featured</span>`;
+            }
+            
+            // Create stars HTML
+            let starsHTML = '';
+            const fullStars = Math.floor(product.rating);
+            const hasHalfStar = product.rating % 1 !== 0;
+            
+            for (let i = 0; i < fullStars; i++) {
+                starsHTML += '<i class="fas fa-star"></i>';
+            }
+            if (hasHalfStar) {
+                starsHTML += '<i class="fas fa-star-half-alt"></i>';
+            }
+            const emptyStars = 5 - Math.ceil(product.rating);
+            for (let i = 0; i < emptyStars; i++) {
+                starsHTML += '<i class="far fa-star"></i>';
+            }
+            
+            card.innerHTML = `
+                <div class="product-image-container">
+                    <div class="product-badges">${badgesHTML}</div>
+                    <img src="${product.images[0]}" alt="${product.title}" class="product-image">
+                </div>
+                <div class="product-info">
+                    <h3 class="product-title">${product.title}</h3>
+                    <div class="product-price-container">
+                        <span class="product-price">${product.price > 0 ? '₹' + product.price : 'Free'}</span>
+                    </div>
+                    <div class="product-rating">
+                        <div class="stars">${starsHTML}</div>
+                        <span class="rating-count">(${product.reviewCount})</span>
+                    </div>
+                    <div class="product-actions">
+                        <button class="btn btn-primary" data-id="${product.id}">
+                            ${product.isFree ? 'Get Now' : 'Buy Now'}
+                        </button>
+                        <button class="btn btn-outline btn-wishlist wishlist-btn" data-id="${product.id}">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Add event listeners
+            const buyBtn = card.querySelector('.btn-primary');
+            const wishlistBtn = card.querySelector('.wishlist-btn');
+            
+            buyBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                handleProductAction(product);
+            });
+            
+            wishlistBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleWishlist(product.id, wishlistBtn);
+            });
+            
+            card.addEventListener('click', () => {
+                openProductModal(product);
+            });
+            
+            return card;
+        }
+
+        function filterProducts(categoryId) {
+            const allProducts = document.querySelectorAll('#allProducts .product-card');
+            
+            allProducts.forEach(card => {
+                if (categoryId === 'all') {
+                    card.style.display = 'block';
+                } else {
+                    const productId = card.querySelector('.btn-primary').getAttribute('data-id');
+                    const product = products.find(p => p.id === productId);
+                    
+                    if (product && product.category === categoryId) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                }
+            });
+        }
+
+        function handleProductAction(product) {
+            if (product.isFree) {
+                downloadProduct(product);
+            } else {
+                openPaymentModal(product);
+            }
+        }
+
+        function openPaymentModal(product) {
+            if (!currentUser) {
+                showToast('Please login to place an order', 'warning');
+                return;
+            }
+            const totalPrice = product.price;
+            const advancePrice = Math.ceil(totalPrice / 3);
+            const remainingPrice = totalPrice - advancePrice;
+
+            document.getElementById('paymentTotal').textContent = `₹${totalPrice}`;
+            document.getElementById('paymentAdvance').textContent = `₹${advancePrice}`;
+            document.getElementById('paymentRemaining').textContent = `₹${remainingPrice}`;
+            
+            document.getElementById('customerName').value = currentUser.displayName || '';
+
+            paymentModal.classList.add('active');
+        }
+
+        function closePaymentModal() {
+            paymentModal.classList.remove('active');
+            document.getElementById('paymentForm').reset();
+        }
+
+        function handleConfirmOrder() {
+            const customerName = document.getElementById('customerName').value.trim();
+            const customerAddress = document.getElementById('customerAddress').value.trim();
+            const paymentNumber = document.getElementById('paymentNumber').value.trim();
+            const transactionId = document.getElementById('transactionId').value.trim();
+
+            if (!customerName || !customerAddress || !paymentNumber || !transactionId) {
+                showToast('Please fill all the fields to confirm your order.', 'error');
+                return;
+            }
+
+            if (!currentProduct || !currentUser) {
+                showToast('Something went wrong. Please try again.', 'error');
+                closePaymentModal();
+                return;
+            }
+
+            const orderData = {
+                userId: currentUser.uid,
+                userName: currentUser.displayName,
+                userEmail: currentUser.email,
+                productId: currentProduct.id,
+                productTitle: currentProduct.title,
+                productImage: currentProduct.images[0],
+                totalAmount: currentProduct.price,
+                advanceAmount: Math.ceil(currentProduct.price / 3),
+                remainingAmount: currentProduct.price - Math.ceil(currentProduct.price / 3),
+                customerName,
+                customerAddress,
+                paymentNumber,
+                transactionId,
+                status: 'pending',
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            db.collection('orders').add(orderData)
+                .then(() => {
+                    showToast('Order placed successfully! We will verify your payment soon.', 'success');
+                    closePaymentModal();
+                    navigateToPage('ordersPage');
+                    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                })
+                .catch(error => {
+                    showToast(`Error: ${error.message}`, 'error');
+                });
+        }
+
+        function downloadProduct(product) {
+            showToast(`Adding ${product.title} to your downloads...`, 'success');
+            
+            if (currentUser) {
+                db.collection('downloads').add({
+                    userId: currentUser.uid,
+                    productId: product.id,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                downloads.push({
+                    id: product.id,
+                    title: product.title,
+                    image: product.images[0],
+                    downloadDate: new Date(),
+                    downloadUrl: product.downloadUrl
+                });
+            }
+            
+            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        }
+
+        function toggleWishlist(productId, button) {
+            if (!currentUser) {
+                showToast('Please login to add items to wishlist', 'warning');
+                return;
+            }
+            
+            const index = wishlist.indexOf(productId);
+            
+            if (index === -1) {
+                // Add to wishlist
+                wishlist.push(productId);
+                button.innerHTML = '<i class="fas fa-heart"></i>';
+                showToast('Added to wishlist', 'success');
+                
+                // Update in Firestore
+                db.collection('users').doc(currentUser.uid).update({
+                    wishlist: firebase.firestore.FieldValue.arrayUnion(productId)
+                });
+            } else {
+                // Remove from wishlist
+                wishlist.splice(index, 1);
+                button.innerHTML = '<i class="far fa-heart"></i>';
+                showToast('Removed from wishlist', 'info');
+                
+                // Update in Firestore
+                db.collection('users').doc(currentUser.uid).update({
+                    wishlist: firebase.firestore.FieldValue.arrayRemove(productId)
+                });
+            }
+        }
+
+        function openProductModal(product) {
+            currentProduct = product;
+            currentGalleryIndex = 0;
+            
+            // Update modal content
+            document.getElementById('modalProductTitle').textContent = product.title;
+            document.getElementById('modalProductPrice').textContent = product.isFree ? 'Free' : '₹' + product.price;
+            document.getElementById('modalProductDescription').textContent = product.description;
+            
+            // Update rating
+            const fullStars = Math.floor(product.rating);
+            const hasHalfStar = product.rating % 1 !== 0;
+            let starsHTML = '';
+            
+            for (let i = 0; i < fullStars; i++) {
+                starsHTML += '<i class="fas fa-star"></i>';
+            }
+            if (hasHalfStar) {
+                starsHTML += '<i class="fas fa-star-half-alt"></i>';
+            }
+            const emptyStars = 5 - Math.ceil(product.rating);
+            for (let i = 0; i < emptyStars; i++) {
+                starsHTML += '<i class="far fa-star"></i>';
+            }
+            
+            document.getElementById('modalProductStars').innerHTML = starsHTML;
+            document.getElementById('modalProductRating').textContent = `(${product.reviewCount})`;
+            
+            // Update gallery
+            updateGallery();
+            
+            // Update tags
+            const tagsContainer = document.getElementById('modalProductTags');
+            tagsContainer.innerHTML = '';
+            product.tags.forEach(tag => {
+                const tagElement = document.createElement('span');
+                tagElement.className = 'tag';
+                tagElement.textContent = tag;
+                tagsContainer.appendChild(tagElement);
+            });
+            
+            // Update wishlist button
+            const isInWishlist = wishlist.includes(product.id);
+            document.getElementById('addToWishlistBtn').innerHTML = isInWishlist ? 
+                '<i class="fas fa-heart"></i> Remove from Wishlist' : 
+                '<i class="far fa-heart"></i> Add to Wishlist';
+            
+            // Update buy button
+            document.getElementById('buyNowBtn').innerHTML = product.isFree ? 
+                '<i class="fas fa-download"></i> Download Now' : 
+                '<i class="fas fa-shopping-bag"></i> Buy Now';
+            
+            // Load reviews
+            loadReviews(product.id);
+            
+            // Show modal
+            productModal.classList.add('active');
+        }
+
+        function updateGallery() {
+            if (!currentProduct) return;
+            
+            const galleryImage = document.getElementById('galleryImage');
+            const galleryNav = document.getElementById('galleryNav');
+            
+            // Update image
+            galleryImage.src = currentProduct.images[currentGalleryIndex];
+            
+            // Update navigation dots
+            galleryNav.innerHTML = '';
+            currentProduct.images.forEach((image, index) => {
+                const dot = document.createElement('div');
+                dot.className = `gallery-dot ${index === currentGalleryIndex ? 'active' : ''}`;
+                dot.addEventListener('click', () => {
+                    currentGalleryIndex = index;
+                    updateGallery();
+                });
+                galleryNav.appendChild(dot);
+            });
+        }
+
+        function closeModal() {
+            productModal.classList.remove('active');
+            currentProduct = null;
+        }
+
+        function loadReviews(productId) {
+            const reviewsContainer = document.getElementById('reviewsContainer');
+            
+            // In a real app, this would fetch from Firestore
+            // For demo, we'll use static data
+            const reviews = [
+                {
+                    id: '1',
+                    productId: productId,
+                    userId: 'user1',
+                    userName: 'John Doe',
+                    rating: 5,
+                    comment: 'Excellent product! Exactly what I was looking for.',
+                    timestamp: new Date('2023-05-15')
+                },
+                {
+                    id: '2',
+                    productId: productId,
+                    userId: 'user2',
+                    userName: 'Jane Smith',
+                    rating: 4,
+                    comment: 'Great quality and easy to use. Highly recommend!',
+                    timestamp: new Date('2023-05-10')
+                },
+                {
+                    id: '3',
+                    productId: productId,
+                    userId: 'user3',
+                    userName: 'Mike Johnson',
+                    rating: 4,
+                    comment: 'Good value for money. The product met my expectations.',
+                    timestamp: new Date('2023-05-05')
+                }
+            ];
+            
+            reviewsContainer.innerHTML = '';
+            
+            reviews.forEach(review => {
+                const reviewCard = document.createElement('div');
+                reviewCard.className = 'review-card';
+                
+                // Create stars HTML
+                let starsHTML = '';
+                for (let i = 0; i < review.rating; i++) {
+                    starsHTML += '<i class="fas fa-star"></i>';
+                }
+                for (let i = review.rating; i < 5; i++) {
+                    starsHTML += '<i class="far fa-star"></i>';
+                }
+                
+                reviewCard.innerHTML = `
+                    <div class="review-header">
+                        <div class="reviewer">
+                            <div class="reviewer-avatar">${review.userName.charAt(0)}</div>
+                            <div>
+                                <div class="reviewer-name">${review.userName}</div>
+                                <div class="review-date">${formatDate(review.timestamp)}</div>
+                            </div>
+                        </div>
+                        <div class="stars">${starsHTML}</div>
+                    </div>
+                    <div class="review-content">${review.comment}</div>
+                `;
+                
+                reviewsContainer.appendChild(reviewCard);
+            });
+        }
+
+        function loadOrders() {
+            const container = document.getElementById('ordersContainer');
+            
+            if (!currentUser) {
+                container.innerHTML = '<p>Please login to view your orders</p>';
+                return;
+            }
+            
+            // Show loading state
+            container.innerHTML = '<p>Loading your orders...</p>';
+            
+            // In a real app, this would fetch from Firestore
+            // For demo, we'll use static data
+            setTimeout(() => {
+                orders = [
+                    {
+                        id: 'order1',
+                        userId: currentUser.uid,
+                        items: [
+                            {
+                                productId: '1',
+                                title: 'Premium Website Template',
+                                price: 2999,
+                                image: 'https://picsum.photos/seed/template1/100/100.jpg'
+                            }
+                        ],
+                        totalAmount: 2999,
+                        status: 'completed',
+                        timestamp: new Date('2023-05-20')
+                    },
+                    {
+                        id: 'order2',
+                        userId: currentUser.uid,
+                        items: [
+                            {
+                                productId: '2',
+                                title: 'Social Media Graphics Pack',
+                                price: 0,
+                                image: 'https://picsum.photos/seed/graphics1/100/100.jpg'
+                            }
+                        ],
+                        totalAmount: 0,
+                        status: 'completed',
+                        timestamp: new Date('2023-05-15')
+                    },
+                    {
+                        id: 'order3',
+                        userId: currentUser.uid,
+                        items: [
+                            {
+                                productId: '3',
+                                title: 'Video Editing Course',
+                                price: 4999,
+                                image: 'https://picsum.photos/seed/course1/100/100.jpg'
+                            }
+                        ],
+                        totalAmount: 4999,
+                        status: 'pending',
+                        timestamp: new Date('2023-05-25')
+                    }
+                ];
+                
+                renderOrders();
+            }, 1000);
+        }
+
+        function renderOrders() {
+            const container = document.getElementById('ordersContainer');
+            container.innerHTML = '';
+            
+            if (orders.length === 0) {
+                container.innerHTML = '<p>You haven\'t placed any orders yet</p>';
+                return;
+            }
+            
+            orders.forEach(order => {
+                const orderCard = document.createElement('div');
+                orderCard.className = 'order-card';
+                
+                // Create status class
+                let statusClass = '';
+                if (order.status === 'completed') {
+                    statusClass = 'status-completed';
+                } else if (order.status === 'pending') {
+                    statusClass = 'status-pending';
+                } else {
+                    statusClass = 'status-failed';
+                }
+                
+                // Create order items HTML
+                let itemsHTML = '';
+                order.items.forEach(item => {
+                    itemsHTML += `
+                        <div class="order-product">
+                            <img src="${item.image}" alt="${item.title}" class="order-product-image">
+                            <div class="order-product-info">
+                                <div class="order-product-title">${item.title}</div>
+                                <div class="order-product-price">${item.price === 0 ? 'Free' : '₹' + item.price}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                orderCard.innerHTML = `
+                    <div class="order-header">
+                        <div>
+                            <div class="order-id">Order #${order.id}</div>
+                            <div class="order-date">${formatDate(order.timestamp)}</div>
+                        </div>
+                        <div class="order-status ${statusClass}">${order.status}</div>
+                    </div>
+                    <div class="order-products">${itemsHTML}</div>
+                    <div class="order-total">
+                        <span>Total:</span>
+                        <span>${order.totalAmount === 0 ? 'Free' : '₹' + order.totalAmount}</span>
+                    </div>
+                    <div class="order-actions">
+                        ${order.status === 'completed' ? 
+                            `<button class="btn btn-primary" data-id="${order.id}">Download</button>` : 
+                            `<button class="btn btn-outline" data-id="${order.id}">Track Order</button>`
+                        }
+                        <button class="btn btn-outline" data-id="${order.id}">View Details</button>
+                    </div>
+                `;
+                
+                // Add event listeners
+                const buttons = orderCard.querySelectorAll('.btn');
+                buttons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const action = button.textContent.trim();
+                        handleOrderAction(order.id, action);
+                    });
+                });
+                
+                container.appendChild(orderCard);
+            });
+        }
+
+        function handleOrderAction(orderId, action) {
+            if (action === 'Download') {
+                showToast('Preparing download...', 'info');
+                setTimeout(() => {
+                    showToast('Download started!', 'success');
+                }, 1500);
+            } else if (action === 'Track Order') {
+                showToast('Tracking information will be available soon', 'info');
+            } else if (action === 'View Details') {
+                showToast(`Viewing details for order #${orderId}`, 'info');
+            }
+        }
+
+        function loadWishlist() {
+            const container = document.getElementById('wishlistContainer');
+            
+            if (!currentUser) {
+                container.innerHTML = '<p>Please login to view your wishlist</p>';
+                return;
+            }
+            
+            // Show loading state
+            container.innerHTML = '<p>Loading your wishlist...</p>';
+            
+            // In a real app, this would fetch from Firestore
+            // For demo, we'll use static data
+            setTimeout(() => {
+                // Get wishlist items
+                const wishlistItems = products.filter(product => wishlist.includes(product.id));
+                
+                if (wishlistItems.length === 0) {
+                    container.innerHTML = `
+                        <div class="wishlist-empty">
+                            <i class="fas fa-heart"></i>
+                            <h3>Your wishlist is empty</h3>
+                            <p>Add items to your wishlist to keep track of them</p>
+                            <button class="btn btn-primary" onclick="navigateToPage('homePage')">Browse Products</button>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Create product grid
+                const productGrid = document.createElement('div');
+                productGrid.className = 'product-grid';
+                
+                wishlistItems.forEach(product => {
+                    productGrid.appendChild(createProductCard(product));
+                });
+                
+                container.innerHTML = '';
+                container.appendChild(productGrid);
+            }, 1000);
+        }
+
+        function loadDownloads() {
+            const container = document.getElementById('downloadsContainer');
+            
+            if (!currentUser) {
+                container.innerHTML = '<p>Please login to view your downloads</p>';
+                return;
+            }
+            
+            // Show loading state
+            container.innerHTML = '<p>Loading your downloads...</p>';
+            
+            // In a real app, this would fetch from Firestore
+            // For demo, we'll use static data
+            setTimeout(() => {
+                // If no downloads yet, show empty state
+                if (downloads.length === 0) {
+                    container.innerHTML = `
+                        <div class="downloads-empty">
+                            <i class="fas fa-download"></i>
+                            <h3>No downloads yet</h3>
+                            <p>Your downloaded products will appear here</p>
+                            <button class="btn btn-primary" onclick="navigateToPage('homePage')">Browse Products</button>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Render downloads
+                container.innerHTML = '';
+                
+                downloads.forEach(download => {
+                    const downloadCard = document.createElement('div');
+                    downloadCard.className = 'download-card';
+                    
+                    downloadCard.innerHTML = `
+                        <img src="${download.image}" alt="${download.title}" class="download-image">
+                        <div class="download-info">
+                            <h3 class="download-title">${download.title}</h3>
+                            <p class="download-date">Downloaded on ${formatDate(download.downloadDate)}</p>
+                            <div class="download-actions">
+                                <button class="btn btn-primary" data-url="${download.downloadUrl}">
+                                    <i class="fas fa-download"></i> Download Again
+                                </button>
+                                <button class="btn btn-outline" data-id="${download.id}">
+                                    <i class="fas fa-share-alt"></i> Share
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Add event listeners
+                    const downloadBtn = downloadCard.querySelector('.btn-primary');
+                    const shareBtn = downloadCard.querySelector('.btn-outline');
+                    
+                    downloadBtn.addEventListener('click', () => {
+                        const url = downloadBtn.getAttribute('data-url');
+                        window.open(url, '_blank');
+                        showToast('Download started!', 'success');
+                    });
+                    
+                    shareBtn.addEventListener('click', () => {
+                        if (navigator.share) {
+                            navigator.share({
+                                title: download.title,
+                                text: `Check out this product: ${download.title}`,
+                                url: window.location.href
+                            });
+                        } else {
+                            // Fallback for browsers that don't support Web Share API
+                            const dummy = document.createElement('input');
+                            document.body.appendChild(dummy);
+                            dummy.value = window.location.href;
+                            dummy.select();
+                            document.execCommand('copy');
+                            document.body.removeChild(dummy);
+                            showToast('Link copied to clipboard!', 'success');
+                        }
+                    });
+                    
+                    container.appendChild(downloadCard);
+                });
+            }, 1000);
+        }
+
+        function loadProfile() {
+            if (!currentUser) {
+                showToast('Please login to view your profile', 'warning');
+                return;
+            }
+            
+            // Update profile info
+            document.getElementById('profileName').textContent = currentUser.displayName || 'User';
+            document.getElementById('profileEmail').textContent = currentUser.email;
+            
+            // Update avatar
+            const avatar = document.getElementById('profileAvatar');
+            avatar.textContent = (currentUser.displayName || 'User').charAt(0).toUpperCase();
+            
+            // Update form fields
+            document.getElementById('nameInput').value = currentUser.displayName || '';
+            document.getElementById('phoneInput').value = '';
+            
+            // Load user data from Firestore
+            db.collection('users').doc(currentUser.uid).get()
+                .then(doc => {
+                    if (doc.exists) {
+                        const userData = doc.data();
+                        document.getElementById('phoneInput').value = userData.phone || '';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading user data:', error);
+                });
+        }
+
+        function handleProfileUpdate(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('nameInput').value;
+            const phone = document.getElementById('phoneInput').value;
+            
+            // Update display name in Firebase Auth
+            currentUser.updateProfile({
+                displayName: name
+            })
+            .then(() => {
+                // Update user data in Firestore
+                return db.collection('users').doc(currentUser.uid).update({
+                    name: name,
+                    phone: phone,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            })
+            .then(() => {
+                showToast('Profile updated successfully!', 'success');
+                loadProfile();
+            })
+            .catch(error => {
+                showToast(error.message, 'error');
+            });
+        }
+
+        function handleChangePassword() {
+            // In a real app, this would send a password reset email
+            auth.sendPasswordResetEmail(currentUser.email)
+                .then(() => {
+                    showToast('Password reset email sent!', 'success');
+                })
+                .catch(error => {
+                    showToast(error.message, 'error');
+                });
+        }
+
+        function handleDeleteAccount() {
+            if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                // Delete user data from Firestore
+                db.collection('users').doc(currentUser.uid).delete()
+                    .then(() => {
+                        // Delete user account
+                        return currentUser.delete();
+                    })
+                    .then(() => {
+                        showToast('Account deleted successfully', 'success');
+                    })
+                    .catch(error => {
+                        showToast(error.message, 'error');
+                    });
+            }
+        }
+
+        function loadSettings() {
+            // In a real app, this would load settings from Firestore
+            // For demo, we'll use static values
+            
+            // Load dark mode setting
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            darkModeToggle.checked = true; // Default to dark mode
+            
+            // Load notification setting
+            const notificationToggle = document.getElementById('notificationToggle');
+            notificationToggle.checked = true; // Default to enabled
+        }
+
+        function handleDarkModeToggle(e) {
+            const isDarkMode = e.target.checked;
+            
+            if (isDarkMode) {
+                document.body.classList.remove('light-mode');
+                showToast('Dark mode enabled', 'success');
+            } else {
+                document.body.classList.add('light-mode');
+                showToast('Light mode enabled', 'success');
+            }
+            
+            // In a real app, this would save the setting to Firestore
+        }
+
+        function handleNotificationToggle(e) {
+            const isEnabled = e.target.checked;
+            
+            if (isEnabled) {
+                showToast('Notifications enabled', 'success');
+            } else {
+                showToast('Notifications disabled', 'info');
+            }
+            
+            // In a real app, this would save the setting to Firestore
+        }
+
+        function loadUserData() {
+            if (!currentUser) return;
+            
+            // Load user data from Firestore
+            db.collection('users').doc(currentUser.uid).get()
+                .then(doc => {
+                    if (doc.exists) {
+                        const userData = doc.data();
+                        
+                        // Load wishlist
+                        if (userData.wishlist) {
+                            wishlist = userData.wishlist;
+                        }
+                        
+                        // Load cart
+                        if (userData.cart) {
+                            cart = userData.cart;
+                            updateCartCount();
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading user data:', error);
+                });
+            
+            // Load downloads from Firestore
+            db.collection('downloads')
+                .where('userId', '==', currentUser.uid)
+                .get()
+                .then(querySnapshot => {
+                    downloads = [];
+                    querySnapshot.forEach(doc => {
+                        const downloadData = doc.data();
+                        const product = products.find(p => p.id === downloadData.productId);
+                        if (product) {
+                            downloads.push({
+                                id: product.id,
+                                title: product.title,
+                                image: product.images[0],
+                                downloadDate: downloadData.timestamp.toDate(),
+                                downloadUrl: product.downloadUrl
+                            });
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading downloads:', error);
+                });
+        }
+
+        function updateCartCount() {
+            const cartCount = document.getElementById('cartCount');
+            cartCount.textContent = cart.length;
+        }
+
+        function handleSearch() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            if (!searchTerm) {
+                renderProducts();
+                return;
+            }
+            
+            // Filter products based on search term
+            const filteredProducts = products.filter(product => 
+                product.title.toLowerCase().includes(searchTerm) ||
+                product.description.toLowerCase().includes(searchTerm) ||
+                product.tags.some(tag => tag.toLowerCase().includes(searchTerm))
+            );
+            
+            // Update product grid
+            const allContainer = document.getElementById('allProducts');
+            allContainer.innerHTML = '';
+            
+            if (filteredProducts.length === 0) {
+                allContainer.innerHTML = '<p>No products found matching your search</p>';
+                return;
+            }
+            
+            filteredProducts.forEach(product => {
+                allContainer.appendChild(createProductCard(product));
+            });
+        }
+
+        function showLegalPage(title, content) {
+            document.getElementById('legalModalTitle').textContent = title;
+            document.getElementById('legalModalContent').innerHTML = `<p style="white-space: pre-line;">${content}</p>`;
+            legalModal.classList.add('active');
+        }
+
+        // Utility Functions
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast`;
+            toast.textContent = message;
+            toastContainer.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        function formatDate(date) {
+            return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        function showLegalPage(title, content) {
+            document.getElementById('legalModalTitle').textContent = title;
+            document.getElementById('legalModalContent').innerHTML = `<p style="white-space: pre-line;">${content}</p>`;
+            legalModal.classList.add('active');
+        }
+    </script>
+</body>
+</html>
