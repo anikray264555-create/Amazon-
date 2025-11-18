@@ -323,7 +323,16 @@
         }
         
         .product-rating {
-            display: none; /* Simplified card view */
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .product-rating .stars {
+            color: #f5a623; /* Gold color for stars */
         }
         
         .product-actions {
@@ -428,6 +437,20 @@
             position: relative;
             background: var(--card-background);
             padding: 16px 0;
+            overflow: hidden;
+        }
+
+        .gallery-wrapper {
+            display: flex;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .gallery-slide {
+            flex-shrink: 0;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .gallery-image-container {
@@ -441,6 +464,45 @@
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
+        }
+
+        .gallery-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.4);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .gallery-arrow.prev { left: 10px; }
+        .gallery-arrow.next { right: 10px; }
+
+        .gallery-dots {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+        }
+        .gallery-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+        }
+        .gallery-dot.active {
+            background: var(--primary-color);
         }
         
         .product-details {
@@ -640,6 +702,32 @@
             font-size: 0.8rem;
             color: var(--text-secondary);
             margin-top: 4px;
+        }
+
+        .order-details {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed var(--border-color);
+            font-size: 0.85rem;
+        }
+
+        .order-details .price-details {
+            justify-content: space-between;
+            display: flex;
+            margin-bottom: 4px;
+        }
+
+        .order-footer {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .order-footer .btn {
+            padding: 8px;
+            font-size: 0.8rem;
         }
 
         /* Auth Forms */
@@ -906,6 +994,16 @@
                 <!-- Categories will be loaded here -->
             </div>
 
+            <!-- Featured Products -->
+            <div class="section">
+                <div class="container">
+                    <h2 class="section-title">Featured Products</h2>
+                    <div class="product-grid" id="featuredProducts">
+                        <!-- Featured products will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
             <!-- All Products -->
             <div class="section">
                 <div class="container">
@@ -984,9 +1082,12 @@
                 <h2 class="modal-title" id="modalProductTitleShort">Product Details</h2>
             </div>
             <div class="product-gallery">
-                <div class="gallery-image-container">
-                     <img src="" alt="Product" class="gallery-image" id="galleryImage">
+                <div class="gallery-wrapper" id="galleryWrapper">
+                    <!-- Images will be loaded here -->
                 </div>
+                <button class="gallery-arrow prev" id="prevImageBtn"><i class="fas fa-chevron-left"></i></button>
+                <button class="gallery-arrow next" id="nextImageBtn"><i class="fas fa-chevron-right"></i></button>
+                <div class="gallery-dots" id="galleryDots"></div>
             </div>
             <div class="product-details">
                 <h1 class="product-title-large" id="modalProductTitle">Product Title</h1>
@@ -1208,6 +1309,7 @@
             // Load initial data
             loadSlider();
             loadCategories();
+            loadFeaturedProducts();
             loadProducts();
         });
 
@@ -1253,6 +1355,21 @@
             });
             document.getElementById('addToWishlistBtn').addEventListener('click', () => {
                 if (currentProduct) toggleWishlist(currentProduct.id, document.getElementById('addToWishlistBtn'));
+            });
+
+            document.getElementById('prevImageBtn').addEventListener('click', () => {
+                const images = currentProduct.images && currentProduct.images.length > 0 ? currentProduct.images : [currentProduct.imageUrl];
+                if (currentGalleryIndex > 0) {
+                    currentGalleryIndex--;
+                    updateGallery();
+                }
+            });
+            document.getElementById('nextImageBtn').addEventListener('click', () => {
+                const images = currentProduct.images && currentProduct.images.length > 0 ? currentProduct.images : [currentProduct.imageUrl];
+                if (currentGalleryIndex < images.length - 1) {
+                    currentGalleryIndex++;
+                    updateGallery();
+                }
             });
 
             // Payment Modal Action
@@ -1397,14 +1514,13 @@
 
         // Data Loading Functions
         function loadSlider() {
-            // In a real app, this would fetch from Firestore 'sliders' collection
-            // For demo, we'll use static data
-            const sliders = [
-                { imageUrl: 'https://rukminim1.flixcart.com/fk-p-flap/1600/270/image/b8e07ff34feb7052.jpg?q=20', linkUrl: '#' },
-                { imageUrl: 'https://rukminim1.flixcart.com/fk-p-flap/1600/270/image/f2416c3c8b4a15a0.jpg?q=20', linkUrl: '#' },
-                { imageUrl: 'https://rukminim1.flixcart.com/fk-p-flap/1600/270/image/0a153155077a572a.jpg?q=20', linkUrl: '#' }
-            ];
-            renderSlider(sliders);
+            db.collection("sliderImages").get().then((querySnapshot) => {
+                const sliders = [];
+                querySnapshot.forEach((doc) => {
+                    sliders.push(doc.data());
+                });
+                renderSlider(sliders);
+            });
         }
 
         function renderSlider(sliders) {
@@ -1512,18 +1628,13 @@
 
 
         function loadCategories() {
-            // In a real app, this would fetch from Firestore
-            // For demo, we'll use static data
-            categories = [
-                { id: 'all', name: 'All', icon: 'fas fa-tags' },
-                { id: 'templates', name: 'Templates', icon: 'fas fa-file-alt' },
-                { id: 'graphics', name: 'Graphics', icon: 'fas fa-palette' },
-                { id: 'videos', name: 'Videos', icon: 'fas fa-video' },
-                { id: 'music', name: 'Music', icon: 'fas fa-music' },
-                { id: 'ebooks', name: 'E-books', icon: 'fas fa-book-open' },
-            ];
-            
-            renderCategories();
+            db.collection("categories").get().then((querySnapshot) => {
+                categories = [{ id: 'all', name: 'All', icon: 'fas fa-tags' }];
+                querySnapshot.forEach((doc) => {
+                    categories.push({ id: doc.id, ...doc.data() });
+                });
+                renderCategories();
+            });
         }
 
         function renderCategories() {
@@ -1547,167 +1658,43 @@
             });
         }
 
-        function loadProducts() {
-            // Show skeleton loaders
-            showProductSkeletons();
-            
-            // In a real app, this would fetch from Firestore
-            // For demo, we'll use static data
-            setTimeout(() => {
-                products = [
-                    {
-                        id: '1',
-                        title: 'Premium Website Template',
-                        description: 'A modern, responsive website template built with HTML, CSS, and JavaScript. Perfect for businesses, portfolios, and blogs.',
-                        price: 2999,
-                        category: 'templates',
-                        images: [
-                            'https://picsum.photos/seed/template1/800/600.jpg',
-                            'https://picsum.photos/seed/template2/800/600.jpg',
-                            'https://picsum.photos/seed/template3/800/600.jpg'
-                        ],
-                        tags: ['HTML', 'CSS', 'JavaScript', 'Responsive'],
-                        rating: 4.5,
-                        reviewCount: 24,
-                        isFree: false,
-                        isFeatured: true,
-                        downloadUrl: 'https://example.com/download/template1',
-                        razorpayId: 'rzp_template1'
-                    },
-                    {
-                        id: '2',
-                        title: 'Social Media Graphics Pack',
-                        description: 'A collection of 100+ high-quality social media graphics for Instagram, Facebook, Twitter, and more.',
-                        price: 0,
-                        category: 'graphics',
-                        images: [
-                            'https://picsum.photos/seed/graphics1/800/600.jpg',
-                            'https://picsum.photos/seed/graphics2/800/600.jpg'
-                        ],
-                        tags: ['Social Media', 'Graphics', 'Marketing'],
-                        rating: 4.8,
-                        reviewCount: 56,
-                        isFree: true,
-                        isFeatured: true,
-                        downloadUrl: 'https://example.com/download/graphics1',
-                        razorpayId: ''
-                    },
-                    {
-                        id: '3',
-                        title: 'Video Editing Course',
-                        description: 'Learn professional video editing techniques with this comprehensive course covering all major editing software.',
-                        price: 4999,
-                        category: 'courses',
-                        images: [
-                            'https://picsum.photos/seed/course1/800/600.jpg',
-                            'https://picsum.photos/seed/course2/800/600.jpg'
-                        ],
-                        tags: ['Video', 'Editing', 'Course', 'Tutorial'],
-                        rating: 4.7,
-                        reviewCount: 89,
-                        isFree: false,
-                        isFeatured: false,
-                        downloadUrl: 'https://example.com/download/course1',
-                        razorpayId: 'rzp_course1'
-                    },
-                    {
-                        id: '4',
-                        title: 'Royalty-Free Music Collection',
-                        description: 'A collection of 50+ royalty-free music tracks perfect for videos, podcasts, and presentations.',
-                        price: 1999,
-                        category: 'music',
-                        images: [
-                            'https://picsum.photos/seed/music1/800/600.jpg'
-                        ],
-                        tags: ['Music', 'Royalty-Free', 'Audio'],
-                        rating: 4.3,
-                        reviewCount: 32,
-                        isFree: false,
-                        isFeatured: false,
-                        downloadUrl: 'https://example.com/download/music1',
-                        razorpayId: 'rzp_music1'
-                    },
-                    {
-                        id: '5',
-                        title: 'E-book: Digital Marketing Guide',
-                        description: 'A comprehensive guide to digital marketing strategies, SEO, social media marketing, and more.',
-                        price: 0,
-                        category: 'ebooks',
-                        images: [
-                            'https://picsum.photos/seed/ebook1/800/600.jpg'
-                        ],
-                        tags: ['E-book', 'Marketing', 'Digital', 'Guide'],
-                        rating: 4.6,
-                        reviewCount: 41,
-                        isFree: true,
-                        isFeatured: false,
-                        downloadUrl: 'https://example.com/download/ebook1',
-                        razorpayId: ''
-                    },
-                    {
-                        id: '6',
-                        title: 'Productivity Software Suite',
-                        description: 'A suite of productivity tools including task manager, note-taking app, and calendar.',
-                        price: 3999,
-                        category: 'software',
-                        images: [
-                            'https://picsum.photos/seed/software1/800/600.jpg',
-                            'https://picsum.photos/seed/software2/800/600.jpg'
-                        ],
-                        tags: ['Software', 'Productivity', 'Tools'],
-                        rating: 4.4,
-                        reviewCount: 18,
-                        isFree: false,
-                        isFeatured: true,
-                        downloadUrl: 'https://example.com/download/software1',
-                        razorpayId: 'rzp_software1'
-                    }
-                ];
-                
-                renderProducts();
-            }, 1500);
+        function loadFeaturedProducts() {
+            const featuredContainer = document.getElementById('featuredProducts');
+            featuredContainer.innerHTML = ''; // Clear existing products
+
+            db.collection("products").where("isFeatured", "==", true).get().then((querySnapshot) => {
+                if (querySnapshot.empty) {
+                    document.getElementById('featuredProducts').parentElement.parentElement.style.display = 'none';
+                    return;
+                }
+                querySnapshot.forEach((doc) => {
+                    const product = { id: doc.id, ...doc.data() };
+                    featuredContainer.appendChild(createProductCard(product));
+                });
+            });
         }
 
-        function showProductSkeletons() {
-            const featuredContainer = document.getElementById('featuredProducts');
+        function loadProducts() {
             const allContainer = document.getElementById('allProducts');
-            
-            // Create skeleton cards
-            const skeletonCard = `
-                <div class="skeleton-card">
-                    <div class="skeleton skeleton-image"></div>
-                    <div class="skeleton-content">
-                        <div class="skeleton skeleton-title"></div>
-                        <div class="skeleton skeleton-text"></div>
-                        <div class="skeleton skeleton-text" style="width: 60%;"></div>
-                    </div>
-                </div>
-            `;
-            
-            // Add 4 skeleton cards to each container
-            for (let i = 0; i < 4; i++) {
-                featuredContainer.innerHTML += skeletonCard;
-                allContainer.innerHTML += skeletonCard;
-            }
+            allContainer.innerHTML = ''; // Clear existing products
+
+            db.collection("products").get().then((querySnapshot) => {
+                products = [];
+                if (querySnapshot.empty) {
+                    allContainer.innerHTML = '<p>No products available at the moment.</p>';
+                    return;
+                }
+                querySnapshot.forEach((doc) => {
+                    products.push({ id: doc.id, ...doc.data() });
+                });
+                renderProducts();
+            });
         }
 
         function renderProducts() {
-            const featuredContainer = document.getElementById('featuredProducts');
             const allContainer = document.getElementById('allProducts');
-            
-            // Clear containers
-            featuredContainer.innerHTML = '';
             allContainer.innerHTML = '';
             
-            // Filter featured products
-            const featuredProducts = products.filter(product => product.isFeatured);
-            
-            // Render featured products
-            featuredProducts.forEach(product => {
-                featuredContainer.appendChild(createProductCard(product));
-            });
-            
-            // Render all products
             products.forEach(product => {
                 allContainer.appendChild(createProductCard(product));
             });
@@ -1717,44 +1704,18 @@
             const card = document.createElement('div');
             card.className = 'product-card';
             
-            // Create badges HTML
-            let badgesHTML = '';
-            if (product.isFree) {
-                badgesHTML += `<span class="badge-product badge-free">Free</span>`;
-            }
-            if (product.isFeatured) {
-                badgesHTML += `<span class="badge-product badge-featured">Featured</span>`;
-            }
-            
-            // Create stars HTML
-            let starsHTML = '';
-            const fullStars = Math.floor(product.rating);
-            const hasHalfStar = product.rating % 1 !== 0;
-            
-            for (let i = 0; i < fullStars; i++) {
-                starsHTML += '<i class="fas fa-star"></i>';
-            }
-            if (hasHalfStar) {
-                starsHTML += '<i class="fas fa-star-half-alt"></i>';
-            }
-            const emptyStars = 5 - Math.ceil(product.rating);
-            for (let i = 0; i < emptyStars; i++) {
-                starsHTML += '<i class="far fa-star"></i>';
-            }
-            
             card.innerHTML = `
                 <div class="product-image-container">
-                    <div class="product-badges">${badgesHTML}</div>
-                    <img src="${product.images[0]}" alt="${product.title}" class="product-image">
+                    <img src="${product.imageUrl}" alt="${product.name}" class="product-image">
                 </div>
                 <div class="product-info">
-                    <h3 class="product-title">${product.title}</h3>
+                    <h3 class="product-title">${product.name}</h3>
                     <div class="product-price-container">
-                        <span class="product-price">${product.price > 0 ? '₹' + product.price : 'Free'}</span>
+                        <span class="product-price">${product.price > 0 ? 'BDT ' + product.price : 'Free'}</span>
                     </div>
                     <div class="product-rating">
-                        <div class="stars">${starsHTML}</div>
-                        <span class="rating-count">(${product.reviewCount})</span>
+                        <span class="stars">${generateStars(product.rating)}</span>
+                        <span>(${product.reviews || 0})</span>
                     </div>
                     <div class="product-actions">
                         <button class="btn btn-primary" data-id="${product.id}">
@@ -1824,9 +1785,9 @@
             const advancePrice = Math.ceil(totalPrice / 3);
             const remainingPrice = totalPrice - advancePrice;
 
-            document.getElementById('paymentTotal').textContent = `₹${totalPrice}`;
-            document.getElementById('paymentAdvance').textContent = `₹${advancePrice}`;
-            document.getElementById('paymentRemaining').textContent = `₹${remainingPrice}`;
+            document.getElementById('paymentTotal').textContent = `BDT ${totalPrice}`;
+            document.getElementById('paymentAdvance').textContent = `BDT ${advancePrice}`;
+            document.getElementById('paymentRemaining').textContent = `BDT ${remainingPrice}`;
             
             document.getElementById('customerName').value = currentUser.displayName || '';
 
@@ -1860,8 +1821,8 @@
                 userName: currentUser.displayName,
                 userEmail: currentUser.email,
                 productId: currentProduct.id,
-                productTitle: currentProduct.title,
-                productImage: currentProduct.images[0],
+                productTitle: currentProduct.name,
+                productImage: currentProduct.imageUrl,
                 totalAmount: currentProduct.price,
                 advanceAmount: Math.ceil(currentProduct.price / 3),
                 remainingAmount: currentProduct.price - Math.ceil(currentProduct.price / 3),
@@ -1870,6 +1831,7 @@
                 paymentNumber,
                 transactionId,
                 status: 'pending',
+                paymentStatus: 'Partially Paid',
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
             
@@ -1940,82 +1902,67 @@
         function openProductModal(product) {
             currentProduct = product;
             currentGalleryIndex = 0;
-            
+
             // Update modal content
-            document.getElementById('modalProductTitle').textContent = product.title;
-            document.getElementById('modalProductPrice').textContent = product.isFree ? 'Free' : '₹' + product.price;
+            document.getElementById('modalProductTitle').textContent = product.name;
+            document.getElementById('modalProductPrice').textContent = product.price > 0 ? `BDT ${product.price}` : 'Free';
             document.getElementById('modalProductDescription').textContent = product.description;
-            
-            // Update rating
-            const fullStars = Math.floor(product.rating);
-            const hasHalfStar = product.rating % 1 !== 0;
-            let starsHTML = '';
-            
-            for (let i = 0; i < fullStars; i++) {
-                starsHTML += '<i class="fas fa-star"></i>';
-            }
-            if (hasHalfStar) {
-                starsHTML += '<i class="fas fa-star-half-alt"></i>';
-            }
-            const emptyStars = 5 - Math.ceil(product.rating);
-            for (let i = 0; i < emptyStars; i++) {
-                starsHTML += '<i class="far fa-star"></i>';
-            }
-            
-            document.getElementById('modalProductStars').innerHTML = starsHTML;
-            document.getElementById('modalProductRating').textContent = `(${product.reviewCount})`;
-            
-            // Update gallery
-            updateGallery();
-            
-            // Update tags
-            const tagsContainer = document.getElementById('modalProductTags');
-            tagsContainer.innerHTML = '';
-            product.tags.forEach(tag => {
-                const tagElement = document.createElement('span');
-                tagElement.className = 'tag';
-                tagElement.textContent = tag;
-                tagsContainer.appendChild(tagElement);
+
+            // Populate gallery
+            const galleryWrapper = document.getElementById('galleryWrapper');
+            galleryWrapper.innerHTML = '';
+            const images = product.images && product.images.length > 0 ? product.images : [product.imageUrl];
+            images.forEach(imgUrl => {
+                galleryWrapper.innerHTML += `
+                    <div class="gallery-slide">
+                        <div class="gallery-image-container">
+                            <img src="${imgUrl}" alt="${product.name}" class="gallery-image">
+                        </div>
+                    </div>
+                `;
             });
-            
+
             // Update wishlist button
             const isInWishlist = wishlist.includes(product.id);
             document.getElementById('addToWishlistBtn').innerHTML = isInWishlist ? 
-                '<i class="fas fa-heart"></i> Remove from Wishlist' : 
-                '<i class="far fa-heart"></i> Add to Wishlist';
+                'Remove from Wishlist' :
+                'Add to Wishlist';
             
             // Update buy button
-            document.getElementById('buyNowBtn').innerHTML = product.isFree ? 
-                '<i class="fas fa-download"></i> Download Now' : 
-                '<i class="fas fa-shopping-bag"></i> Buy Now';
+            document.getElementById('buyNowBtn').innerHTML = product.isFree ? 'Get Now' : 'Buy Now';
             
-            // Load reviews
-            loadReviews(product.id);
-            
+            updateGallery();
             // Show modal
             productModal.classList.add('active');
         }
 
         function updateGallery() {
             if (!currentProduct) return;
-            
-            const galleryImage = document.getElementById('galleryImage');
-            const galleryNav = document.getElementById('galleryNav');
-            
-            // Update image
-            galleryImage.src = currentProduct.images[currentGalleryIndex];
-            
-            // Update navigation dots
-            galleryNav.innerHTML = '';
-            currentProduct.images.forEach((image, index) => {
+
+            const images = currentProduct.images && currentProduct.images.length > 0 ? currentProduct.images : [currentProduct.imageUrl];
+            const galleryWrapper = document.getElementById('galleryWrapper');
+            const galleryDots = document.getElementById('galleryDots');
+            const prevBtn = document.getElementById('prevImageBtn');
+            const nextBtn = document.getElementById('nextImageBtn');
+
+            // Move slider
+            galleryWrapper.style.transform = `translateX(-${currentGalleryIndex * 100}%)`;
+
+            // Update dots
+            galleryDots.innerHTML = '';
+            images.forEach((_, index) => {
                 const dot = document.createElement('div');
                 dot.className = `gallery-dot ${index === currentGalleryIndex ? 'active' : ''}`;
                 dot.addEventListener('click', () => {
                     currentGalleryIndex = index;
                     updateGallery();
                 });
-                galleryNav.appendChild(dot);
+                galleryDots.appendChild(dot);
             });
+
+            // Update arrows
+            prevBtn.style.display = currentGalleryIndex === 0 ? 'none' : 'flex';
+            nextBtn.style.display = currentGalleryIndex === images.length - 1 ? 'none' : 'flex';
         }
 
         function closeModal() {
@@ -2099,62 +2046,15 @@
                 return;
             }
             
-            // Show loading state
             container.innerHTML = '<p>Loading your orders...</p>';
             
-            // In a real app, this would fetch from Firestore
-            // For demo, we'll use static data
-            setTimeout(() => {
-                orders = [
-                    {
-                        id: 'order1',
-                        userId: currentUser.uid,
-                        items: [
-                            {
-                                productId: '1',
-                                title: 'Premium Website Template',
-                                price: 2999,
-                                image: 'https://picsum.photos/seed/template1/100/100.jpg'
-                            }
-                        ],
-                        totalAmount: 2999,
-                        status: 'completed',
-                        timestamp: new Date('2023-05-20')
-                    },
-                    {
-                        id: 'order2',
-                        userId: currentUser.uid,
-                        items: [
-                            {
-                                productId: '2',
-                                title: 'Social Media Graphics Pack',
-                                price: 0,
-                                image: 'https://picsum.photos/seed/graphics1/100/100.jpg'
-                            }
-                        ],
-                        totalAmount: 0,
-                        status: 'completed',
-                        timestamp: new Date('2023-05-15')
-                    },
-                    {
-                        id: 'order3',
-                        userId: currentUser.uid,
-                        items: [
-                            {
-                                productId: '3',
-                                title: 'Video Editing Course',
-                                price: 4999,
-                                image: 'https://picsum.photos/seed/course1/100/100.jpg'
-                            }
-                        ],
-                        totalAmount: 4999,
-                        status: 'pending',
-                        timestamp: new Date('2023-05-25')
-                    }
-                ];
-                
+            db.collection("orders").where("userId", "==", currentUser.uid).get().then((querySnapshot) => {
+                orders = [];
+                querySnapshot.forEach((doc) => {
+                    orders.push({ id: doc.id, ...doc.data() });
+                });
                 renderOrders();
-            }, 1000);
+            });
         }
 
         function renderOrders() {
@@ -2170,7 +2070,6 @@
                 const orderCard = document.createElement('div');
                 orderCard.className = 'order-card';
                 
-                // Create status class
                 let statusClass = '';
                 if (order.status === 'completed') {
                     statusClass = 'status-completed';
@@ -2180,50 +2079,25 @@
                     statusClass = 'status-failed';
                 }
                 
-                // Create order items HTML
-                let itemsHTML = '';
-                order.items.forEach(item => {
-                    itemsHTML += `
-                        <div class="order-product">
-                            <img src="${item.image}" alt="${item.title}" class="order-product-image">
-                            <div class="order-product-info">
-                                <div class="order-product-title">${item.title}</div>
-                                <div class="order-product-price">${item.price === 0 ? 'Free' : '₹' + item.price}</div>
-                            </div>
-                        </div>
-                    `;
-                });
-                
                 orderCard.innerHTML = `
-                    <div class="order-header">
-                        <div>
-                            <div class="order-id">Order #${order.id}</div>
-                            <div class="order-date">${formatDate(order.timestamp)}</div>
+                    <div class="order-product">
+                        <img src="${order.productImage}" alt="${order.productTitle}" class="order-product-image">
+                        <div class="order-product-info">
+                            <div class="order-product-title">${order.productTitle}</div>
+                            <div class="order-status ${statusClass}">${order.paymentStatus}</div>
+                            <div class="order-date">${new Date(order.timestamp.seconds * 1000).toLocaleDateString()}</div>
                         </div>
-                        <div class="order-status ${statusClass}">${order.status}</div>
                     </div>
-                    <div class="order-products">${itemsHTML}</div>
-                    <div class="order-total">
-                        <span>Total:</span>
-                        <span>${order.totalAmount === 0 ? 'Free' : '₹' + order.totalAmount}</span>
+                    <div class="order-details">
+                        <div class="price-details"><span>Total:</span> <span>BDT ${order.totalAmount}</span></div>
+                        <div class="price-details"><span>Advance Paid:</span> <span>BDT ${order.advanceAmount}</span></div>
+                        <div class="price-details"><strong><span>Remaining:</span> <span>BDT ${order.remainingAmount}</span></strong></div>
                     </div>
-                    <div class="order-actions">
-                        ${order.status === 'completed' ? 
-                            `<button class="btn btn-primary" data-id="${order.id}">Download</button>` : 
-                            `<button class="btn btn-outline" data-id="${order.id}">Track Order</button>`
-                        }
-                        <button class="btn btn-outline" data-id="${order.id}">View Details</button>
+                    <div class="order-footer">
+                        ${order.paymentStatus !== 'Fully Paid' ? `<button class="btn btn-primary" onclick="handleOrderAction('${order.id}', 'Pay')">Pay Remaining</button>` : ''}
+                        ${order.paymentStatus === 'Fully Paid' ? `<button class="btn btn-success" onclick="handleOrderAction('${order.id}', 'Download')">Download/View</button>` : ''}
                     </div>
                 `;
-                
-                // Add event listeners
-                const buttons = orderCard.querySelectorAll('.btn');
-                buttons.forEach(button => {
-                    button.addEventListener('click', () => {
-                        const action = button.textContent.trim();
-                        handleOrderAction(order.id, action);
-                    });
-                });
                 
                 container.appendChild(orderCard);
             });
@@ -2584,6 +2458,21 @@
         }
 
         // Utility Functions
+        function generateStars(rating) {
+            let starsHTML = '';
+            const roundedRating = Math.round((rating || 0) * 2) / 2;
+            for (let i = 1; i <= 5; i++) {
+                if (i <= roundedRating) {
+                    starsHTML += '<i class="fas fa-star"></i>';
+                } else if (i - 0.5 === roundedRating) {
+                    starsHTML += '<i class="fas fa-star-half-alt"></i>';
+                } else {
+                    starsHTML += '<i class="far fa-star"></i>';
+                }
+            }
+            return starsHTML;
+        }
+
         function showToast(message, type = 'info') {
             const toast = document.createElement('div');
             toast.className = `toast`;

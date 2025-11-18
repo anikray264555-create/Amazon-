@@ -131,19 +131,19 @@
         /* Layout */
         .admin-layout {
             display: flex;
+            flex-direction: column; /* Changed to column for mobile */
             min-height: calc(100vh - 70px);
         }
 
         /* Sidebar */
         .sidebar {
-            width: 250px;
+            width: 100%; /* Full width on mobile */
             background: var(--dark-card);
             border-right: 1px solid var(--dark-border);
             padding: 20px 0;
-            position: sticky;
-            top: 60px; /* Adjusted for header height */
-            height: calc(100vh - 60px);
-            overflow-y: auto;
+            position: static; /* Changed from sticky */
+            height: auto; /* Auto height for mobile */
+            overflow-y: visible; /* Changed from auto */
             transition: all 0.3s ease;
         }
 
@@ -890,44 +890,25 @@
             .sidebar {
                 width: 200px;
             }
+            .main-content{
+                width: 100%;
+            }
         }
 
-        @media (max-width: 768px) {
+        @media (min-width: 768px) {
+            .admin-layout {
+                flex-direction: row;
+            }
+
             .sidebar {
-                position: fixed;
-                left: -250px;
-                z-index: 999;
-                transition: all 0.3s ease;
+                width: 250px;
+                position: sticky;
+                top: 60px;
+                height: calc(100vh - 60px);
             }
-            
-            .sidebar.active {
-                left: 0;
-            }
-            
-            .sidebar-toggle {
-                display: flex;
-            }
-            
+
             .main-content {
-                padding: 15px;
-            }
-            
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .page-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
-            }
-            
-            .table-container {
-                padding: 15px;
-            }
-            
-            .form-row {
-                grid-template-columns: 1fr;
+                padding: 25px;
             }
         }
 
@@ -940,6 +921,10 @@
             .modal-content {
                 width: 95%;
                 border-radius: 15px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
             }
         }
 
@@ -1168,62 +1153,8 @@
                 </div>
 
                 <!-- Stats Grid -->
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <div class="stat-icon users">
-                                <i class="fas fa-users"></i>
-                            </div>
-                        </div>
-                        <div class="stat-value">1,284</div>
-                        <div class="stat-label">Total Users</div>
-                        <div class="stat-change positive">
-                            <i class="fas fa-arrow-up"></i>
-                            <span>12% from last month</span>
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <div class="stat-icon orders">
-                                <i class="fas fa-shopping-bag"></i>
-                            </div>
-                        </div>
-                        <div class="stat-value">856</div>
-                        <div class="stat-label">Total Orders</div>
-                        <div class="stat-change positive">
-                            <i class="fas fa-arrow-up"></i>
-                            <span>8% from last month</span>
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <div class="stat-icon revenue">
-                                <i class="fas fa-rupee-sign"></i>
-                            </div>
-                        </div>
-                        <div class="stat-value">₹2.4L</div>
-                        <div class="stat-label">Total Revenue</div>
-                        <div class="stat-change positive">
-                            <i class="fas fa-arrow-up"></i>
-                            <span>23% from last month</span>
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <div class="stat-icon downloads">
-                                <i class="fas fa-download"></i>
-                            </div>
-                        </div>
-                        <div class="stat-value">3,421</div>
-                        <div class="stat-label">Total Downloads</div>
-                        <div class="stat-change negative">
-                            <i class="fas fa-arrow-down"></i>
-                            <span>5% from last month</span>
-                        </div>
-                    </div>
+                <div class="stats-grid" id="statsGrid">
+                    <!-- Stats will be loaded here -->
                 </div>
 
                 <!-- Activity Feed -->
@@ -1232,52 +1163,8 @@
                         <h3 class="chart-title">Recent Activity</h3>
                         <button class="btn btn-outline btn-sm">View All</button>
                     </div>
-                    <div class="activity-list">
-                        <div class="activity-item">
-                            <div class="activity-icon order">
-                                <i class="fas fa-shopping-bag"></i>
-                            </div>
-                            <div class="activity-content">
-                                <div class="activity-title">New order #12345</div>
-                                <div class="activity-time">2 minutes ago</div>
-                            </div>
-                        </div>
-                        <div class="activity-item">
-                            <div class="activity-icon user">
-                                <i class="fas fa-user"></i>
-                            </div>
-                            <div class="activity-content">
-                                <div class="activity-title">New user registered: John Doe</div>
-                                <div class="activity-time">15 minutes ago</div>
-                            </div>
-                        </div>
-                        <div class="activity-item">
-                            <div class="activity-icon product">
-                                <i class="fas fa-box"></i>
-                            </div>
-                            <div class="activity-content">
-                                <div class="activity-title">New product added: Premium Template</div>
-                                <div class="activity-time">1 hour ago</div>
-                            </div>
-                        </div>
-                        <div class="activity-item">
-                            <div class="activity-icon review">
-                                <i class="fas fa-star"></i>
-                            </div>
-                            <div class="activity-content">
-                                <div class="activity-title">New review: 5 stars for Video Course</div>
-                                <div class="activity-time">2 hours ago</div>
-                            </div>
-                        </div>
-                        <div class="activity-item">
-                            <div class="activity-icon order">
-                                <i class="fas fa-shopping-bag"></i>
-                            </div>
-                            <div class="activity-content">
-                                <div class="activity-title">Order #12343 marked as delivered</div>
-                                <div class="activity-time">3 hours ago</div>
-                            </div>
-                        </div>
+                    <div class="activity-list" id="activityList">
+                        <!-- Activity items will be loaded here -->
                     </div>
                 </div>
             </div>
@@ -1965,8 +1852,8 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="productImageUrl">Product Image URL</label>
-                        <input type="url" id="productImageUrl" class="form-control" placeholder="https://example.com/image.jpg">
+                        <label for="productImageUrls">Product Image URLs (one per line)</label>
+                        <textarea id="productImageUrls" class="form-control" rows="3" placeholder="https://example.com/image1.jpg\nhttps://example.com/image2.jpg"></textarea>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
@@ -2505,11 +2392,11 @@
             
             // Hide all pages
             pageContents.forEach(content => {
-                content.classList.remove('active');
+                content.style.display = 'none';
             });
             
             // Show selected page
-            document.getElementById(page + 'Page').classList.add('active');
+            document.getElementById(page + 'Page').style.display = 'block';
             
             // Update current page
             currentPage = page;
@@ -2567,104 +2454,101 @@
 
         // Dashboard Functions
         function loadDashboardData() {
-            // In a real app, this would fetch data from Firestore
-            // For demo, we'll use static data
+            const statsGrid = document.getElementById('statsGrid');
+            statsGrid.innerHTML = ''; // Clear existing stats
+
+            // Fetch total users
+            db.collection("users").get().then((querySnapshot) => {
+                const totalUsers = querySnapshot.size;
+                const statCard = createStatCard('Total Users', totalUsers, 'fas fa-users', 'users');
+                statsGrid.appendChild(statCard);
+            });
+
+            // Fetch total orders and revenue
+            db.collection("orders").get().then((querySnapshot) => {
+                const totalOrders = querySnapshot.size;
+                let totalRevenue = 0;
+                querySnapshot.forEach((doc) => {
+                    totalRevenue += doc.data().totalAmount || 0;
+                });
+                const orderStatCard = createStatCard('Total Orders', totalOrders, 'fas fa-shopping-bag', 'orders');
+                statsGrid.appendChild(orderStatCard);
+                const revenueStatCard = createStatCard('Total Revenue', `BDT ${totalRevenue.toLocaleString()}`, 'fas fa-money-bill-wave', 'revenue');
+                statsGrid.appendChild(revenueStatCard);
+            });
             
-            // Update stats with animation
-            animateValue('usersCount', 0, 1284, 2000);
-            animateValue('ordersCount', 0, 856, 2000);
-            animateValue('revenueCount', 0, 240000, 2000, true);
-            animateValue('downloadsCount', 0, 3421, 2000);
+            // Fetch total downloads (completed orders)
+            db.collection("orders").where("status", "==", "Completed").get().then((querySnapshot) => {
+                const totalDownloads = querySnapshot.size;
+                const downloadsStatCard = createStatCard('Total Downloads', totalDownloads, 'fas fa-download', 'downloads');
+                statsGrid.appendChild(downloadsStatCard);
+            });
+
+            // Fetch recent activity
+            const activityList = document.getElementById('activityList');
+            activityList.innerHTML = ''; // Clear existing activity
+
+            // Fetch last 5 orders
+            db.collection("orders").orderBy("timestamp", "desc").limit(5).get().then((querySnapshot) => {
+                querySnapshot.forEach((doc) => {
+                    const order = doc.data();
+                    const activityItem = createActivityItem(`New order #${doc.id}`, new Date(order.timestamp.seconds * 1000).toLocaleString(), 'fas fa-shopping-bag', 'order');
+                    activityList.appendChild(activityItem);
+                });
+            });
+            
+            // Fetch last 5 users
+            db.collection("users").orderBy("createdAt", "desc").limit(5).get().then((querySnapshot) => {
+                querySnapshot.forEach((doc) => {
+                    const user = doc.data();
+                    const activityItem = createActivityItem(`New user registered: ${user.name}`, new Date(user.createdAt.seconds * 1000).toLocaleString(), 'fas fa-user', 'user');
+                    activityList.appendChild(activityItem);
+                });
+            });
         }
 
-        function animateValue(id, start, end, duration, isCurrency = false) {
-            const element = document.getElementById(id);
-            if (!element) return;
-            
-            const range = end - start;
-            const increment = range / (duration / 16);
-            let current = start;
-            
-            const timer = setInterval(() => {
-                current += increment;
-                if (current >= end) {
-                    current = end;
-                    clearInterval(timer);
-                }
-                
-                if (isCurrency) {
-                    element.textContent = '₹' + (current / 1000).toFixed(1) + 'K';
-                } else {
-                    element.textContent = Math.floor(current).toLocaleString();
-                }
-            }, 16);
+        function createStatCard(label, value, iconClass, iconType) {
+            const statCard = document.createElement('div');
+            statCard.className = 'stat-card';
+            statCard.innerHTML = `
+                <div class="stat-header">
+                    <div class="stat-icon ${iconType}">
+                        <i class="${iconClass}"></i>
+                    </div>
+                </div>
+                <div class="stat-value">${value}</div>
+                <div class="stat-label">${label}</div>
+            `;
+            return statCard;
+        }
+
+        function createActivityItem(title, time, iconClass, iconType) {
+            const activityItem = document.createElement('div');
+            activityItem.className = 'activity-item';
+            activityItem.innerHTML = `
+                <div class="activity-icon ${iconType}">
+                    <i class="${iconClass}"></i>
+                </div>
+                <div class="activity-content">
+                    <div class="activity-title">${title}</div>
+                    <div class="activity-time">${time}</div>
+                </div>
+            `;
+            return activityItem;
         }
 
         // Products Functions
         function loadProducts() {
             const tableBody = document.getElementById('productsTableBody');
-            
-            // Show loading state
             tableBody.innerHTML = '<tr><td colspan="8" style="text-align: center;">Loading products...</td></tr>';
-            
-            // In a real app, this would fetch from Firestore
-            // For demo, we'll use static data
-            setTimeout(() => {
-                products = [
-                    {
-                        id: '1',
-                        name: 'Premium Website Template',
-                        category: 'Templates',
-                        price: 2999,
-                        status: 'Active',
-                        stock: 'Unlimited',
-                        rating: 4.5,
-                        image: 'https://picsum.photos/seed/template1/100/100.jpg'
-                    },
-                    {
-                        id: '2',
-                        name: 'Social Media Graphics Pack',
-                        category: 'Graphics',
-                        price: 0,
-                        status: 'Active',
-                        stock: 'Unlimited',
-                        rating: 4.8,
-                        image: 'https://picsum.photos/seed/graphics1/100/100.jpg'
-                    },
-                    {
-                        id: '3',
-                        name: 'Video Editing Course',
-                        category: 'Courses',
-                        price: 4999,
-                        status: 'Active',
-                        stock: 'Unlimited',
-                        rating: 4.7,
-                        image: 'https://picsum.photos/seed/course1/100/100.jpg'
-                    },
-                    {
-                        id: '4',
-                        name: 'Royalty-Free Music Collection',
-                        category: 'Music',
-                        price: 1999,
-                        status: 'Active',
-                        stock: 'Unlimited',
-                        rating: 4.3,
-                        image: 'https://picsum.photos/seed/music1/100/100.jpg'
-                    },
-                    {
-                        id: '5',
-                        name: 'E-book: Digital Marketing Guide',
-                        category: 'E-books',
-                        price: 0,
-                        status: 'Active',
-                        stock: 'Unlimited',
-                        rating: 4.6,
-                        image: 'https://picsum.photos/seed/ebook1/100/100.jpg'
-                    }
-                ];
-                
+
+            db.collection("products").get().then((querySnapshot) => {
+                products = [];
+                querySnapshot.forEach((doc) => {
+                    products.push({ id: doc.id, ...doc.data() });
+                });
                 renderProducts();
-            }, 1000);
+            });
         }
 
         function renderProducts() {
@@ -2739,6 +2623,7 @@
             const modal = document.getElementById('productModal');
             const title = document.getElementById('productModalTitle');
             const categorySelect = document.getElementById('productCategory');
+            const form = document.getElementById('productForm');
             
             // Populate categories
             categorySelect.innerHTML = '<option value="">Select Category</option>';
@@ -2751,18 +2636,24 @@
             
             if (productId) {
                 title.textContent = 'Edit Product';
-                // Load product data
                 const product = products.find(p => p.id === productId);
                 if (product) {
+                    form.dataset.id = productId;
                     document.getElementById('productName').value = product.name;
                     document.getElementById('productCategory').value = product.category;
                     document.getElementById('productPrice').value = product.price;
-                    document.getElementById('productImageUrl').value = product.image;
-                    // Set other fields...
+                    document.getElementById('productDescription').value = product.description;
+                    document.getElementById('productTags').value = product.tags ? product.tags.join(', ') : '';
+                    document.getElementById('productImageUrls').value = product.images ? product.images.join('\n') : product.imageUrl;
+                    document.getElementById('downloadUrl').value = product.downloadUrl;
+                    document.getElementById('razorpayId').value = product.razorpayId;
+                    document.getElementById('isFree').checked = product.isFree;
+                    document.getElementById('isFeatured').checked = product.isFeatured;
                 }
             } else {
                 title.textContent = 'Add Product';
-                document.getElementById('productForm').reset();
+                form.reset();
+                delete form.dataset.id;
             }
             
             modal.classList.add('active');
@@ -2778,33 +2669,62 @@
             const price = document.getElementById('productPrice').value;
             const description = document.getElementById('productDescription').value;
             const tags = document.getElementById('productTags').value;
-            const imageUrl = document.getElementById('productImageUrl').value;
+            const imageUrls = document.getElementById('productImageUrls').value.split('\n').map(url => url.trim()).filter(url => url);
             const downloadUrl = document.getElementById('downloadUrl').value;
             const razorpayId = document.getElementById('razorpayId').value;
             const isFree = document.getElementById('isFree').checked;
             const isFeatured = document.getElementById('isFeatured').checked;
+            const productId = document.getElementById('productForm').dataset.id;
             
             // Validate form
-            if (!name || !category || !description || !imageUrl) {
-                showToast('Please fill in all required fields', 'error');
+            if (!name || !category || !description || imageUrls.length === 0) {
+                showToast('Please fill in all required fields, including at least one image URL', 'error');
                 return;
             }
             
-            // In a real app, this would save to Firestore
-            showToast('Product saved successfully!', 'success');
-            closeProductModal();
-            loadProducts();
-        }
+            const productData = {
+                name,
+                category,
+                price: isFree ? 0 : parseFloat(price),
+                description,
+                tags: tags.split(',').map(tag => tag.trim()),
+                imageUrl: imageUrls[0],
+                images: imageUrls,
+                downloadUrl,
+                razorpayId,
+                isFree,
+                isFeatured,
+                status: 'Active',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
 
-        function editProduct(productId) {
-            openProductModal(productId);
+            if (productId) {
+                // Update
+                db.collection("products").doc(productId).set(productData, { merge: true })
+                    .then(() => {
+                        showToast('Product updated successfully!', 'success');
+                        closeProductModal();
+                        loadProducts();
+                    });
+            } else {
+                // Add
+                productData.rating = 0;
+                productData.reviews = 0;
+                db.collection("products").add(productData)
+                    .then(() => {
+                        showToast('Product added successfully!', 'success');
+                        closeProductModal();
+                        loadProducts();
+                    });
+            }
         }
 
         function deleteProduct(productId) {
             if (confirm('Are you sure you want to delete this product?')) {
-                // In a real app, this would delete from Firestore
-                showToast('Product deleted successfully!', 'success');
-                loadProducts();
+                db.collection("products").doc(productId).delete().then(() => {
+                    showToast('Product deleted successfully!', 'success');
+                    loadProducts();
+                });
             }
         }
 
@@ -3019,58 +2939,15 @@
         // Orders Functions
         function loadOrders() {
             const tableBody = document.getElementById('ordersTableBody');
-            
-            // Show loading state
-            tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Loading orders...</td></tr>';
-            
-            // In a real app, this would fetch from Firestore
-            // For demo, we'll use static data
-            setTimeout(() => {
-                orders = [
-                    {
-                        id: 'ORD-001',
-                        customer: 'John Doe',
-                        customerEmail: 'john@example.com',
-                        products: ['Premium Website Template'],
-                        date: new Date('2023-05-20'),
-                        amount: 2999,
-                        status: 'Completed',
-                        paymentStatus: 'Completed'
-                    },
-                    {
-                        id: 'ORD-002',
-                        customer: 'Jane Smith',
-                        customerEmail: 'jane@example.com',
-                        products: ['Social Media Graphics Pack'],
-                        date: new Date('2023-05-19'),
-                        amount: 0,
-                        status: 'Completed',
-                        paymentStatus: 'Completed'
-                    },
-                    {
-                        id: 'ORD-003',
-                        customer: 'Mike Johnson',
-                        customerEmail: 'mike@example.com',
-                        products: ['Video Editing Course'],
-                        date: new Date('2023-05-18'),
-                        amount: 4999,
-                        status: 'Processing',
-                        paymentStatus: 'One-Third Paid'
-                    },
-                    {
-                        id: 'ORD-004',
-                        customer: 'Sarah Williams',
-                        customerEmail: 'sarah@example.com',
-                        products: ['Royalty-Free Music Collection'],
-                        date: new Date('2023-05-17'),
-                        amount: 1999,
-                        status: 'Pending',
-                        paymentStatus: 'Pending One-Third'
-                    }
-                ];
-                
+            tableBody.innerHTML = '<tr><td colspan="8" style="text-align: center;">Loading orders...</td></tr>';
+
+            db.collection("orders").get().then((querySnapshot) => {
+                orders = [];
+                querySnapshot.forEach((doc) => {
+                    orders.push({ id: doc.id, ...doc.data() });
+                });
                 renderOrders();
-            }, 1000);
+            });
         }
 
         function renderOrders() {
@@ -3094,22 +2971,21 @@
                     <td>${order.id}</td>
                     <td>
                         <div>
-                            <div style="font-weight: 500;">${order.customer}</div>
-                            <div style="font-size: 0.8rem; color: var(--text-secondary);">${order.customerEmail}</div>
+                            <div style="font-weight: 500;">${order.customerName}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);">${order.userEmail}</div>
                         </div>
                     </td>
-                    <td>${order.products.join(', ')}</td>
-                    <td>${formatDate(order.date)}</td>
-                    <td>${order.amount === 0 ? 'Free' : '₹' + order.amount}</td>
+                    <td>${order.productTitle}</td>
+                    <td>${new Date(order.timestamp.seconds * 1000).toLocaleString()}</td>
+                    <td>BDT ${order.totalAmount.toLocaleString()}</td>
                     <td>
                         <span class="status-badge ${statusClass}">${order.status}</span>
                     </td>
                     <td>
                         <select class="filter-select payment-status-select" data-id="${order.id}">
-                            <option value="Pending One-Third" ${order.paymentStatus === 'Pending One-Third' ? 'selected' : ''}>Pending One-Third</option>
-                            <option value="One-Third Paid" ${order.paymentStatus === 'One-Third Paid' ? 'selected' : ''}>One-Third Paid</option>
-                            <option value="Pending Full Payment" ${order.paymentStatus === 'Pending Full Payment' ? 'selected' : ''}>Pending Full Payment</option>
-                            <option value="Completed" ${order.paymentStatus === 'Completed' ? 'selected' : ''}>Completed</option>
+                            <option value="Pending" ${order.paymentStatus === 'Pending' ? 'selected' : ''}>Pending</option>
+                            <option value="Partially Paid" ${order.paymentStatus === 'Partially Paid' ? 'selected' : ''}>Partially Paid</option>
+                            <option value="Paid" ${order.paymentStatus === 'Paid' ? 'selected' : ''}>Paid</option>
                         </select>
                     </td>
                     <td>
@@ -3169,54 +3045,15 @@
         // Users Functions
         function loadUsers() {
             const tableBody = document.getElementById('usersTableBody');
-            
-            // Show loading state
             tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Loading users...</td></tr>';
-            
-            // In a real app, this would fetch from Firestore
-            // For demo, we'll use static data
-            setTimeout(() => {
-                users = [
-                    {
-                        id: '1',
-                        name: 'John Doe',
-                        email: 'john@example.com',
-                        phone: '+91 9876543210',
-                        role: 'Customer',
-                        joined: new Date('2023-01-15'),
-                        status: 'Active'
-                    },
-                    {
-                        id: '2',
-                        name: 'Jane Smith',
-                        email: 'jane@example.com',
-                        phone: '+91 9876543211',
-                        role: 'Customer',
-                        joined: new Date('2023-02-20'),
-                        status: 'Active'
-                    },
-                    {
-                        id: '3',
-                        name: 'Admin User',
-                        email: 'admin@aristostore.com',
-                        phone: '+91 9876543212',
-                        role: 'Admin',
-                        joined: new Date('2022-12-01'),
-                        status: 'Active'
-                    },
-                    {
-                        id: '4',
-                        name: 'Mike Johnson',
-                        email: 'mike@example.com',
-                        phone: '+91 9876543213',
-                        role: 'Customer',
-                        joined: new Date('2023-03-10'),
-                        status: 'Inactive'
-                    }
-                ];
-                
+
+            db.collection("users").get().then((querySnapshot) => {
+                users = [];
+                querySnapshot.forEach((doc) => {
+                    users.push({ id: doc.id, ...doc.data() });
+                });
                 renderUsers();
-            }, 1000);
+            });
         }
 
         function renderUsers() {
@@ -3248,7 +3085,7 @@
                     <td>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--gradient); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">
-                                ${user.name.charAt(0)}
+                                ${user.name ? user.name.charAt(0) : ''}
                             </div>
                             <div>
                                 <div style="font-weight: 500;">${user.name}</div>
@@ -3261,7 +3098,7 @@
                     <td>
                         <span class="role-badge ${roleClass}">${user.role}</span>
                     </td>
-                    <td>${formatDate(user.joined)}</td>
+                    <td>${user.createdAt ? new Date(user.createdAt.seconds * 1000).toLocaleString() : ''}</td>
                     <td>
                         <span class="status-badge ${statusClass}">${user.status}</span>
                     </td>
